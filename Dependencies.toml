@@ -14,6 +14,7 @@ version = "0.1.0"
 dependencies = [
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "sql"},
 	{org = "ballerinai", name = "observe"},
 	{org = "ballerinax", name = "mysql"},
@@ -24,7 +25,7 @@ modules = [
 	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.authorization"},
 	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.database"},
 	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.email"},
-	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.github"}
+	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.gh"}
 ]
 
 [[package]]
@@ -276,6 +277,18 @@ version = "1.10.0"
 dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"}
+]
+
+[[package]]
+org = "ballerina"
+name = "regex"
+version = "1.3.2"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "lang.string"}
+]
+modules = [
+	{org = "ballerina", packageName = "regex", moduleName = "regex"}
 ]
 
 [[package]]
