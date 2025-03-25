@@ -3,6 +3,7 @@ import ballerinax/mysql.driver as _;
 
 configurable DatabaseConfig dbConfig = ?;
 
+
 final mysql:Client dbClient = check new (
     user = dbConfig.user,
     password = dbConfig.password,
@@ -11,8 +12,8 @@ final mysql:Client dbClient = check new (
     port = dbConfig.port,
     options = {
         ssl: {
-            mode: dbConfig.sslMode // Set the desired SSL mode
+            mode: dbConfig.sslMode, // Set the desired SSL mode
+            allowPublicKeyRetrieval: true
         }
-    }
-    
+    } 
 );
