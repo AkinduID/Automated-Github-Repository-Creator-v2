@@ -36,7 +36,6 @@ public type RepositoryRequest record {|
     @sql:Column {name: "timestamp"}string timestamp;
     @sql:Column {name: "approval_state"}string approvalState;
     @sql:Column {name: "comments"}string? comments;
-    @sql:Column {name: "email_thread_id"}string? emailThreadId;
 |};
 
 // RepositoryRequest create record type
@@ -64,7 +63,6 @@ public type RepositoryRequestCreate record {|
     string? azureDevopsProject;
     string? approvalState;
     string? comments;
-    string? emailThreadId;
 |};
 
 // RepositoryRequest update record type
@@ -92,5 +90,4 @@ public type RepositoryRequestUpdate record {|
     string? azureDevopsProject = ();
     string? approvalState = ();
     string? comments = ();
-    string? emailThreadId = ();
 |};

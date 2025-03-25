@@ -131,3 +131,14 @@ Manages email notifications for repository request creation, updates, approvals,
 
 3. gh
 Interacts with the GitHub API to create repositories, add labels, topics, templates, branch protection, and manage teams.
+
+
+### future steps
+
+robust error handling
+
+keep LabelList in a separatre file
+
+keep template content is a separate file
+
+databse module import in email module

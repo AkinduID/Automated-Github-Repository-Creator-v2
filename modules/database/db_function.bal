@@ -3,6 +3,10 @@ import ballerina/io;
 
 // Define the function to fetch repository requests from the database.
 
+# Description.
+# get the personal access token (PAT) for the organization
+# + organization - organization name
+# + return - Personal Access Token (PAT) for the organization
 public isolated function getPat(string organization) returns string {
     io:println(" - Running getPat() Function");
     // Execute the query and return a stream of RepositoryRequest records.
@@ -18,9 +22,9 @@ public isolated function getPat(string organization) returns string {
 }
 
 # Description.
-#
-# + id - parameter description
-# + return - return value description
+# get a specific repository request by id
+# + id - repository request id
+# + return - RepositoryRequest object or sql:Error
 public isolated function getRepositoryRequest(int id) returns RepositoryRequest|sql:Error {
     io:println(" - Running getRepositoryRequest() Function");
     RepositoryRequest|sql:Error result = dbClient->queryRow(getRepositoryRequestQuery(id));
@@ -30,10 +34,10 @@ public isolated function getRepositoryRequest(int id) returns RepositoryRequest|
 
 
 # Description.
-#
-# + member_email - parameter description
-# + return - return value description
-public isolated function getRepositoryRequestsByUser(string member_email) returns RepositoryRequest[]|sql:Error {
+# get all repository requests created by a user (member or lead)
+# + member_email - member email
+# + return - repository requests created by the user or sql:Error
+public isolated function getRepositoryRequestsByMember(string member_email) returns RepositoryRequest[]|sql:Error {
     io:println(" - Running getRepositoryRequestsByUser() Function");
     stream<RepositoryRequest, sql:Error?> resultStream = dbClient->query(getRepositoryRequestsByUserQuery(member_email));
     io:println("   - Result Stream: ", resultStream);
@@ -47,9 +51,9 @@ public isolated function getRepositoryRequestsByUser(string member_email) return
 
 
 # Description.
-#
-# + lead_email - parameter description
-# + return - return value description
+# get all repository requests for a lead
+# + lead_email - lead email
+# + return - repository requests for the lead or sql:Error
 public isolated function getRepositoryRequestsByLead(string lead_email) returns RepositoryRequest[]|sql:Error {
     io:println(" - Running getRepositoryRequestsByLead() Function");
     stream<RepositoryRequest, sql:Error?> resultStream = dbClient->query(getRepositoryRequestsByLeadQuery(lead_email));
@@ -62,25 +66,25 @@ public isolated function getRepositoryRequestsByLead(string lead_email) returns 
     return repositoryRequests;
 }
 
-# Description.
-# get all repository requests 
-# + return - return value description
-public isolated function getAllRepositoryRequests() returns RepositoryRequest[]|sql:Error {
-    io:println(" - Running getAllRepositoryRequests() Function");
-    stream<RepositoryRequest, sql:Error?> resultStream = dbClient->query(getAllRepositoryRequestsQuery());
-    io:println("   - Result Stream: ", resultStream);
-    RepositoryRequest[] repositoryRequests = [];
-    check from RepositoryRequest repositoryRequest in resultStream
-        do {
-            repositoryRequests.push(repositoryRequest);
-        };
-    return repositoryRequests;
-}
+// # Description.
+// # get all repository requests 
+// # + return - repository requests or sql:Error
+// public isolated function getAllRepositoryRequests() returns RepositoryRequest[]|sql:Error {
+//     io:println(" - Running getAllRepositoryRequests() Function");
+//     stream<RepositoryRequest, sql:Error?> resultStream = dbClient->query(getAllRepositoryRequestsQuery());
+//     io:println("   - Result Stream: ", resultStream);
+//     RepositoryRequest[] repositoryRequests = [];
+//     check from RepositoryRequest repositoryRequest in resultStream
+//         do {
+//             repositoryRequests.push(repositoryRequest);
+//         };
+//     return repositoryRequests;
+// }
 
 # Description.
 # insert a new repository request into the database.
-# + payload - parameter description
-# + return - return value description
+# + payload - repository request payload
+# + return - newly inserted RepositoryRequest object or sql:Error
 public isolated function insertRepositoryRequest(RepositoryRequestCreate payload) returns RepositoryRequest|sql:Error {
     io:println(" - Running insertRepositoryRequests() Function");
 
@@ -109,33 +113,40 @@ public isolated function insertRepositoryRequest(RepositoryRequestCreate payload
     return newRow;
 }
 
-// Delete a repository request from the database by ID.
 # Description.
-#
-# + requestId - parameter description
-# + return - return value description
+# Delete a repository request from the database.
+# + requestId - repository request ID
+# + return - ExecutionResult or sql:Error
 public isolated function deleteRepositoryRequest(int requestId) returns sql:ExecutionResult|sql:Error {
     io:println(" - Running deleteRepositoryRequests() Function");
     return dbClient->execute(deleteRepositoryRequestQuery(requestId));
 }
 
-// Update a repository request in the database.
 # Description.
-#
-# + requestId - parameter description  
-# + payload - parameter description
-# + return - return value description
+# Update a repository request in the database.
+# + requestId - repository request ID  
+# + payload - repository request payload
+# + return - ExecutionResult or sql:Error
 public isolated function updateRepositoryRequest(int requestId, RepositoryRequestUpdate payload) returns sql:ExecutionResult|sql:Error {
     io:println(" - Running updateRepositoryRequests() Function");
     return dbClient->execute(updateRepositoryRequestQuery(requestId, payload));
 }
 
+# Description.
+# update comment a repository request in the database.
+# + requestId - repository request ID
+# + payload - repository request payload. contains only comment field
+# + return - ExecutionResult or sql:Error
 public isolated function commentRepositoryRequest(int requestId, RepositoryRequestUpdate payload) returns sql:ExecutionResult|sql:Error {
-    io:println(" - Running updateRepositoryRequests() Function");
+    io:println(" - Running commentRepositoryRequests() Function");
     return dbClient->execute(commentRepositoryRequestQuery(requestId, payload));
 }
 
+# Description.
+# change approval state a repository request in the database.
+# + requestId - repository request ID
+# + return - ExecutionResult or sql:Error
 public isolated function approveRepositoryRequest(int requestId) returns sql:ExecutionResult|sql:Error {
-    io:println(" - Running updateRepositoryRequests() Function");
+    io:println(" - Running approveRepositoryRequests() Function");
     return dbClient->execute(approveRepositoryRequestQuery(requestId));
 }

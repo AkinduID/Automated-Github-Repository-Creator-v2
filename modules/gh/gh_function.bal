@@ -1,12 +1,6 @@
-// import ballerinax/github;
-// import ballerina/github;
-// import ballerina/http;
-// import ballerina/encoding;
 import ballerina/io;
 import ballerina/http;
 import ballerina/regex;
-
-
 
 # Description.
 # API Call to create a new repository in GitHub.
@@ -40,7 +34,9 @@ returns http:Response|error {
     };
     string apiPath = string `/orgs/${organization}/repos`;
     http:Response response = check githubClient->post(apiPath, body);
-    io:print("Response: ", response.getJsonPayload());
+    io:println("Response status code: ", response.statusCode);
+    io:println("Response: ", response.getJsonPayload());
+    io:println("-----------------------------------------------------------------------");
     return response;
 }
 
@@ -65,7 +61,9 @@ returns http:Response | error {
 
     string apiPath = string `/repos/${organization}/${repository}/topics`;
     http:Response response = check githubClient->put(apiPath, body);
-    io:print("Response: ", response.getJsonPayload());
+    io:println("Response status code: ", response.statusCode);
+    io:println("Response: ", response.getJsonPayload());
+    io:println("-----------------------------------------------------------------------");
     return response;
 }
 
@@ -119,7 +117,9 @@ returns http:Response[]| error {
         };
         http:Response response = check githubClient->post(apiPath,body);
         responses.push(response);
-        io:print("Response: ", response.getJsonPayload());
+        io:println("Response status code: ", response.statusCode);
+        io:println("Response: ", response.getJsonPayload());
+        io:println("-----------------------------------------------------------------------");
     }
     return responses;
 }
@@ -147,7 +147,9 @@ returns http:Response | error {
     };
     string apiPath = string `/repos/${organization}/${repository}/contents/issue_template.md`;
     http:Response response = check githubClient->put(apiPath, issueTemplate);
-    io:print("Response: ", response.getJsonPayload());
+    io:println("Response status code: ", response.statusCode);
+    io:println("Response: ", response.getJsonPayload());
+    io:println("-----------------------------------------------------------------------");
     return response;
 }
 
@@ -173,7 +175,9 @@ returns http:Response | error {
     };
     string apiPath = string `/repos/${organization}/${repository}/contents/pull_request_template.md`;
     http:Response response = check githubClient->put(apiPath, issueTemplate);
-    io:print("Response: ", response.getJsonPayload());
+    io:println("Response status code: ", response.statusCode);
+    io:println("Response: ", response.getJsonPayload());
+    io:println("-----------------------------------------------------------------------");
     return response;
 }
 
@@ -214,8 +218,9 @@ returns http:Response | error {
         apiPath = string `/repos/${organization}/${repository}`;
     }
     response = check githubClient->put(apiPath, payload);
-    io:print("Response: ", response.getJsonPayload());
-    io:print("Response status code: ", response.statusCode);
+    io:println("Response: ", response.getJsonPayload());
+    io:println("Response status code: ", response.statusCode);
+    io:println("-----------------------------------------------------------------------");
     return response;
 }
 
@@ -310,8 +315,8 @@ public isolated function addTeams(string organization, string repository, string
         }
         response = check githubClient->put(apiPath, payload);
         io:println("Team - ", team, "Response status code: ", response.statusCode);
-        io:println("Response: ", response.getJsonPayload());
-        io:println("______________________________");
+        io:println("Response: ", response);
+        io:println("------------------------------------------------------------------------------");
         responses.push(response);
     }
     return responses;

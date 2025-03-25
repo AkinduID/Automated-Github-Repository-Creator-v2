@@ -2,7 +2,7 @@ import ballerina/sql;
 
 // Query to get PAT
 isolated function getPatQuery(string organization) returns sql:ParameterizedQuery => `
-    SELECT pat FROM repository_requests WHERE organization = ${organization};`;
+    SELECT token FROM github_tokens WHERE name = ${organization};`;
 
 // Query to get a specific repository request by id
 isolated function getRepositoryRequestQuery(int id) returns sql:ParameterizedQuery => `
@@ -10,7 +10,7 @@ isolated function getRepositoryRequestQuery(int id) returns sql:ParameterizedQue
         repo_name, organization, repo_type, description, enable_issues, website_url, topics,
         pr_protection, teams, enable_triage_wso2all, enable_triage_wso2allinterns, disable_triage_reason,
         cicd_requirement, jenkins_job_type, jenkins_group_id, azure_devops_org, azure_devops_project,
-        timestamp, approval_state, comments, email_thread_id
+        timestamp, approval_state, comments
     FROM repository_requests WHERE id = ${id};`;
 
 // Query to get all repository requests created by a user (member or lead)
@@ -19,7 +19,7 @@ isolated function getRepositoryRequestsByUserQuery(string member_email) returns 
         repo_name, organization, repo_type, description, enable_issues, website_url, topics,
         pr_protection, teams, enable_triage_wso2all, enable_triage_wso2allinterns, disable_triage_reason,
         cicd_requirement, jenkins_job_type, jenkins_group_id, azure_devops_org, azure_devops_project,
-        timestamp, approval_state, comments, email_thread_id
+        timestamp, approval_state, comments
     FROM repository_requests WHERE email = ${member_email};`;
 
 // Query to get all repository requests for a lead
@@ -28,17 +28,17 @@ isolated function getRepositoryRequestsByLeadQuery(string lead_email) returns sq
         repo_name, organization, repo_type, description, enable_issues, website_url, topics,
         pr_protection, teams, enable_triage_wso2all, enable_triage_wso2allinterns, disable_triage_reason,
         cicd_requirement, jenkins_job_type, jenkins_group_id, azure_devops_org, azure_devops_project,
-        timestamp, approval_state, comments, email_thread_id
+        timestamp, approval_state, comments
     FROM repository_requests WHERE lead_email = ${lead_email};`;
 
-// Query to get all repository requests
-isolated function getAllRepositoryRequestsQuery() returns sql:ParameterizedQuery => `
-    SELECT id, email, lead_email, requirement, cc_list, 
-        repo_name, organization, repo_type, description, enable_issues, website_url, topics,
-        pr_protection, teams, enable_triage_wso2all, enable_triage_wso2allinterns, disable_triage_reason,
-        cicd_requirement, jenkins_job_type, jenkins_group_id, azure_devops_org, azure_devops_project,
-        timestamp, approval_state, comments, email_thread_id
-    FROM repository_requests;`;
+// // Query to get all repository requests
+// isolated function getAllRepositoryRequestsQuery() returns sql:ParameterizedQuery => `
+//     SELECT id, email, lead_email, requirement, cc_list, 
+//         repo_name, organization, repo_type, description, enable_issues, website_url, topics,
+//         pr_protection, teams, enable_triage_wso2all, enable_triage_wso2allinterns, disable_triage_reason,
+//         cicd_requirement, jenkins_job_type, jenkins_group_id, azure_devops_org, azure_devops_project,
+//         timestamp, approval_state, comments
+//     FROM repository_requests;`;
 
 // Query to insert a new repository request
 isolated function insertRepositoryRequestQuery(RepositoryRequestCreate payload) returns sql:ParameterizedQuery => `
@@ -48,7 +48,7 @@ isolated function insertRepositoryRequestQuery(RepositoryRequestCreate payload) 
             repo_name, organization, repo_type, description, enable_issues, website_url, topics, 
             pr_protection, teams, enable_triage_wso2all, enable_triage_wso2allinterns, disable_triage_reason,
             cicd_requirement, jenkins_job_type, jenkins_group_id, azure_devops_org, azure_devops_project,
-            approval_state, comments, email_thread_id
+            approval_state, comments
         )
     VALUES
         (
@@ -56,7 +56,7 @@ isolated function insertRepositoryRequestQuery(RepositoryRequestCreate payload) 
             ${payload.repoName}, ${payload.organization}, ${payload.repoType}, ${payload.description}, ${payload.enableIssues}, ${payload.websiteUrl}, ${payload.topics},
             ${payload.prProtection}, ${payload.teams}, ${payload.enableTriageWso2All}, ${payload.enableTriageWso2AllInterns}, ${payload.disableTriageReason},
             ${payload.cicdRequirement}, ${payload.jenkinsJobType}, ${payload.jenkinsGroupId}, ${payload.azureDevopsOrg}, ${payload.azureDevopsProject},
-            ${payload.approvalState}, ${payload.comments}, ${payload.emailThreadId}
+            ${payload.approvalState}, ${payload.comments}
         )
 `;
 
@@ -88,21 +88,21 @@ cicd_requirement = COALESCE(${payload.cicdRequirement}, cicd_requirement),
 jenkins_job_type = COALESCE(${payload.jenkinsJobType}, jenkins_job_type),
 jenkins_group_id = COALESCE(${payload.jenkinsGroupId}, jenkins_group_id),
 azure_devops_org = COALESCE(${payload.azureDevopsOrg}, azure_devops_org),
-azure_devops_project = COALESCE(${payload.azureDevopsProject}, azure_devops_project),
+azure_devops_project = COALESCE(${payload.azureDevopsProject}, azure_devops_project)
 WHERE id = ${requestId};
 `; 
 
 
 isolated function commentRepositoryRequestQuery(int requestId, RepositoryRequestUpdate payload) returns sql:ParameterizedQuery =>`
-UPDATE repository_requests
-SET
-comments = COALESCE(${payload.comments}, comments),
-WHERE id = ${requestId};
-`; 
+    UPDATE repository_requests
+    SET
+    comments = COALESCE(${payload.comments}, comments)
+    WHERE id = ${requestId};
+    `; 
 
 isolated function approveRepositoryRequestQuery(int requestId) returns sql:ParameterizedQuery =>`
-UPDATE repository_requests
-SET
-approval_state = COALESCE(Approved, approval_state),
-WHERE id = ${requestId};
-`; 
+    UPDATE repository_requests
+    SET
+    approval_state = COALESCE("Approved", approval_state)
+    WHERE id = ${requestId};
+    `; 

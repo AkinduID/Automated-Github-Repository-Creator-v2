@@ -4,9 +4,9 @@ import ballerina/regex;
 import ballerina/io;
 
 # Description.
-#
-# + repoRequest - parameter description
-# + return - return value description
+# create a new GitHub repository
+# + repoRequest - repository request object
+# + return - http:Response or error
 public function createGitHubRepository(database:RepositoryRequest repoRequest) returns 
 http:Response|error {
 

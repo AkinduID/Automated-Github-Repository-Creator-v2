@@ -16,7 +16,7 @@ service / on new http:Listener(9090) {
         database:RepositoryRequest[]|error response;
         if member_email is string {
             io:println("Fetching repository requests for member_email: " + member_email);
-            response = database:getRepositoryRequestsByUser(member_email); 
+            response = database:getRepositoryRequestsByMember(member_email); 
         } else if lead_email is string {
             io:println("Fetching repository requests for lead_email: " + lead_email);
             response = database:getRepositoryRequestsByLead(lead_email); 
@@ -203,5 +203,29 @@ service / on new http:Listener(9090) {
         }
 
         return repoCreationResponse; // Returning the first response. You might need to handle responses differently.
+    }
+
+
+    resource function post emailtest() 
+    returns http:Response|database:RepositoryRequest|http:InternalServerError|error {
+        io:println("Running test() API endpoint");
+
+        database:RepositoryRequest|error repoRequest = database:getRepositoryRequest(7);
+        if repoRequest is error {
+            io:println("Error while retrieving repository request: ", repoRequest);
+            return <http:InternalServerError>{
+                body: "Error while retrieving repository request: " + repoRequest.message()
+            };
+        }
+
+        error? emailError = email:createRepoRequestMail(repoRequest);
+        if emailError is error {
+            io:println("Error while sending email: ", emailError);
+            return <http:InternalServerError>{
+                body: "Error while sending email: " + emailError.message()
+            };
+        }
+        return repoRequest;
+
     }
 }

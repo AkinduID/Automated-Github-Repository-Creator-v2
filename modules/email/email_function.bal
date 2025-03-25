@@ -1,14 +1,11 @@
 import ballerina/email;
 import ballerina_crud_application.database;
 import ballerina/regex;
-// import ballerina/io;
-// import ballerina/time;
-
 
 # Description.
 # Send an email notifying the creation of a new repository request.
-# + request - parameter description
-# + return - return value description
+# + request - repository request object
+# + return - error
 public function createRepoRequestMail(database:RepositoryRequest request) returns error? {
     string[] ccList = regex:split(request.ccList, ",");
     email:Message email = {
@@ -19,17 +16,17 @@ public function createRepoRequestMail(database:RepositoryRequest request) return
         body: string ` Hi,
                     This is a new repositoroty request.
                     ${emailBody(request)}`,
-        'from: "bot@email.com",
-        sender: "sender@email.com",
-        replyTo: ["replyTo1@email.com", "replyTo2@email.com"]
+        'from: request.email,
+        sender: request.email,
+        replyTo: []
 };
     check smtpClient->sendMessage(email);
 }
 
 # Description.
 # Send an email notifying the update of a repository request.
-# + request - parameter description
-# + return - return value description
+# + request - repository request object
+# + return - error
 public function updateRepoRequestMail(database:RepositoryRequest request) returns error? {
     string[] ccList = regex:split(request.ccList, ",");
     email:Message email = {
@@ -49,8 +46,8 @@ public function updateRepoRequestMail(database:RepositoryRequest request) return
     
 # Description.
 # Send an email notifying the comment on a repository request.
-# + request - parameter description
-# + return - return value description
+# + request - repository request object
+# + return - error
 public function commentRepoRequestMail(database:RepositoryRequest request) returns error? {
     string[] ccList = regex:split(request.ccList, ",");
     email:Message email = {
@@ -71,8 +68,8 @@ public function commentRepoRequestMail(database:RepositoryRequest request) retur
 
 # Description.
 # Send an email notifying the approval of a repository request.
-# + request - parameter description
-# + return - return value description
+# + request - repository request object
+# + return - error
 public function approveRepoRequestMail(database:RepositoryRequest request) returns error? {
     string[] ccList = regex:split(request.ccList, ",");
     email:Message email = {
@@ -93,8 +90,8 @@ public function approveRepoRequestMail(database:RepositoryRequest request) retur
 
 # Description.
 # Generate the email body for the repository request.
-# + request - parameter description
-# + return - return value description
+# + request - repository request object
+# + return - string
 public function emailBody(database:RepositoryRequest request) returns string {
     return string `
     Requested By: ${request.email}
