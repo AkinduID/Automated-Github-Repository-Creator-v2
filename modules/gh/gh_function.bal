@@ -7,17 +7,19 @@ import ballerina/http;
 import ballerina/regex;
 
 
+
 # Description.
-#
-# + organization - parameter description  
-# + repoName - parameter description  
-# + repoDesc - parameter description  
-# + repoType - parameter description  
-# + enableIssues - parameter description  
-# + websiteUrl - parameter description  
-# + authToken - parameter description
-# + return - return value description
-public isolated function createRepository(string organization, string repoName, string repoDesc, boolean repoType, boolean enableIssues, string? websiteUrl, string authToken) returns http:Response|error {
+# API Call to create a new repository in GitHub.
+# + organization - Organization name
+# + repoName - repository name 
+# + repoDesc - repository description  
+# + isPrivate - repository type (false - public/ true - private) 
+# + enableIssues - enable issues  
+# + websiteUrl - website URL (optional)  
+# + authToken - GitHub Personal Access Token
+# + return - http response
+public isolated function createRepository(string organization, string repoName, string repoDesc, boolean isPrivate, boolean enableIssues, string? websiteUrl, string authToken) 
+returns http:Response|error {
     io:println("Accessing createRepository() function");
     http:Client githubClient = check new ("https://api.github.com", {
         auth: {
@@ -26,7 +28,7 @@ public isolated function createRepository(string organization, string repoName, 
     });
     json body = {
         name: repoName,
-        'private: repoType,
+        'private: isPrivate,
         description: repoDesc,
         homepage: websiteUrl, // optional
         has_issues: enableIssues,
@@ -43,15 +45,15 @@ public isolated function createRepository(string organization, string repoName, 
 }
 
 # Description.
-#
-# + organization - parameter description  
-# + repository - parameter description  
-# + topicList - parameter description  
-# + authToken - parameter description
-# + return - return value description
-public isolated function addTopics(string organization, string repository, string[] topicList, string authToken) returns http:Response | error {
+# API Call to add topics to a repository
+# + organization - organization name  
+# + repository - repository name 
+# + topicList - list of topics to be added  
+# + authToken - GitHub Personal Access Token
+# + return - http response
+public isolated function addTopics(string organization, string repository, string[] topicList, string authToken) 
+returns http:Response | error {
     io:println("Accessing addTopics() function");
-    
     http:Client githubClient = check new ("https://api.github.com", {
         auth: {
             token: authToken
@@ -69,12 +71,13 @@ public isolated function addTopics(string organization, string repository, strin
 
 
 # Description.
-#
-# + organization - parameter description  
-# + repository - parameter description  
-# + authToken - parameter description
-# + return - return value description
-public isolated function addLabels(string organization, string repository, string authToken) returns http:Response[]| error {
+# API Call to add labels to a repository
+# + organization - organization name
+# + repository - repository name
+# + authToken - GitHub Personal Access Token
+# + return - http response
+public isolated function addLabels(string organization, string repository, string authToken) 
+returns http:Response[]| error {
     http:Client githubClient = check new ("https://api.github.com", {
         auth: {
             token: authToken
@@ -99,7 +102,7 @@ public isolated function addLabels(string organization, string repository, strin
         { name: "Priority/Normal", color: "ff9900", description: "Tasks with a normal priority level" },
         { name: "Priority/Low", color: "ff9900", description: "Low-priority tasks that can be deferred" },
         { name: "Resolution/Fixed", color: "93c47d", description: "Indicates issues that have been resolved" },
-        { name: "Resolution/Won’t Fix", color: "93c47d", description: "Marks issues that will not be addressed" },
+        { name: "Resolution/Won't Fix", color: "93c47d", description: "Marks issues that will not be addressed" },
         { name: "Resolution/Duplicate", color: "93c47d", description: "Denotes duplicate issues" },
         { name: "Resolution/Cannot Reproduce", color: "93c47d", description: "Issues that could not be replicated" },
         { name: "Resolution/Not a bug", color: "93c47d", description: "Specifies that the reported issue is not a bug" },
@@ -123,12 +126,13 @@ public isolated function addLabels(string organization, string repository, strin
 
 
 # Description.
-#
-# + organization - parameter description  
-# + repository - parameter description  
-# + authToken - parameter description  
-# + return - return value description
-public function addIssueTemplate(string organization, string repository, string authToken) returns http:Response | error {
+# API Call to add issue template to a repository
+# + organization - organization name  
+# + repository - repository name 
+# + authToken - GitHub Personal Access Token 
+# + return - http response
+public function addIssueTemplate(string organization, string repository, string authToken) 
+returns http:Response | error {
     io:println("Accessing addIssueTemplate() function");
     http:Client githubClient = check new ("https://api.github.com", {
         auth: {
@@ -148,29 +152,25 @@ public function addIssueTemplate(string organization, string repository, string 
 }
 
 # Description.
-#
-# + organization - parameter description  
-# + repository - parameter description  
-# + authToken - parameter description  
-# + return - return value description
-public function addPRTemplate(string organization, string repository, string authToken) returns http:Response | error {
+# API Call to add pull request template to a repository
+# + organization - organization name
+# + repository - repository name
+# + authToken - GitHub Personal Access Token 
+# + return - http response
+public function addPRTemplate(string organization, string repository, string authToken) 
+returns http:Response | error {
     io:println("Accessing addPRTemplate() function");
     http:Client githubClient = check new ("https://api.github.com", {
         auth: {
             token: authToken
         }
     });
-
-    // Define the issue template content (Base64-encoded)
     string templateContent = "IyMgUHVycG9zZQ0KPiBEZXNjcmliZSB0aGUgcHJvYmxlbXMsIGlzc3Vlcywgb3IgbmVlZHMgZHJpdmluZyB0aGlzIGZlYXR1cmUvZml4IGFuZCBpbmNsdWRlIGxpbmtzIHRvIHJlbGF0ZWQgaXNzdWVzIGluIHRoZSBmb2xsb3dpbmcgZm9ybWF0OiBSZXNvbHZlcyBpc3N1ZTEsIGlzc3VlMiwgZXRjLg0KDQojIyBHb2Fscw0KPiBEZXNjcmliZSB0aGUgc29sdXRpb25zIHRoYXQgdGhpcyBmZWF0dXJlL2ZpeCB3aWxsIGludHJvZHVjZSB0byByZXNvbHZlIHRoZSBwcm9ibGVtcyBkZXNjcmliZWQgYWJvdmUNCg0KIyMgQXBwcm9hY2gNCj4gRGVzY3JpYmUgaG93IHlvdSBhcmUgaW1wbGVtZW50aW5nIHRoZSBzb2x1dGlvbnMuIEluY2x1ZGUgYW4gYW5pbWF0ZWQgR0lGIG9yIHNjcmVlbnNob3QgaWYgdGhlIGNoYW5nZSBhZmZlY3RzIHRoZSBVSSAoZW1haWwgZG9jdW1lbnRhdGlvbkB3c28yLmNvbSB0byByZXZpZXcgYWxsIFVJIHRleHQpLiBJbmNsdWRlIGEgbGluayB0byBhIE1hcmtkb3duIGZpbGUgb3IgR29vZ2xlIGRvYyBpZiB0aGUgZmVhdHVyZSB3cml0ZS11cCBpcyB0b28gbG9uZyB0byBwYXN0ZSBoZXJlLg0KDQojIyBVc2VyIHN0b3JpZXMNCj4gU3VtbWFyeSBvZiB1c2VyIHN0b3JpZXMgYWRkcmVzc2VkIGJ5IHRoaXMgY2hhbmdlPg0KDQojIyBSZWxlYXNlIG5vdGUNCj4gQnJpZWYgZGVzY3JpcHRpb24gb2YgdGhlIG5ldyBmZWF0dXJlIG9yIGJ1ZyBmaXggYXMgaXQgd2lsbCBhcHBlYXIgaW4gdGhlIHJlbGVhc2Ugbm90ZXMNCg0KIyMgRG9jdW1lbnRhdGlvbg0KPiBMaW5rKHMpIHRvIHByb2R1Y3QgZG9jdW1lbnRhdGlvbiB0aGF0IGFkZHJlc3NlcyB0aGUgY2hhbmdlcyBvZiB0aGlzIFBSLiBJZiBubyBkb2MgaW1wYWN0LCBlbnRlciDigJxOL0HigJ0gcGx1cyBicmllZiBleHBsYW5hdGlvbiBvZiB3aHkgdGhlcmXigJlzIG5vIGRvYyBpbXBhY3QNCg0KIyMgVHJhaW5pbmcNCj4gTGluayB0byB0aGUgUFIgZm9yIGNoYW5nZXMgdG8gdGhlIHRyYWluaW5nIGNvbnRlbnQgaW4gaHR0cHM6Ly9naXRodWIuY29tL3dzbzIvV1NPMi1UcmFpbmluZywgaWYgYXBwbGljYWJsZQ0KDQojIyBDZXJ0aWZpY2F0aW9uDQo+IFR5cGUg4oCcU2VudOKAnSB3aGVuIHlvdSBoYXZlIHByb3ZpZGVkIG5ldy91cGRhdGVkIGNlcnRpZmljYXRpb24gcXVlc3Rpb25zLCBwbHVzIGZvdXIgYW5zd2VycyBmb3IgZWFjaCBxdWVzdGlvbiAoY29ycmVjdCBhbnN3ZXIgaGlnaGxpZ2h0ZWQgaW4gYm9sZCksIGJhc2VkIG9uIHRoaXMgY2hhbmdlLiBDZXJ0aWZpY2F0aW9uIHF1ZXN0aW9ucy9hbnN3ZXJzIHNob3VsZCBiZSBzZW50IHRvIGNlcnRpZmljYXRpb25Ad3NvMi5jb20gYW5kIE5PVCBwYXN0ZWQgaW4gdGhpcyBQUi4gSWYgdGhlcmUgaXMgbm8gaW1wYWN0IG9uIGNlcnRpZmljYXRpb24gZXhhbXMsIHR5cGUg4oCcTi9B4oCdIGFuZCBleHBsYWluIHdoeS4NCg0KIyMgTWFya2V0aW5nDQo+IExpbmsgdG8gZHJhZnRzIG9mIG1hcmtldGluZyBjb250ZW50IHRoYXQgd2lsbCBkZXNjcmliZSBhbmQgcHJvbW90ZSB0aGlzIGZlYXR1cmUsIGluY2x1ZGluZyBwcm9kdWN0IHBhZ2UgY2hhbmdlcywgdGVjaG5pY2FsIGFydGljbGVzLCBibG9nIHBvc3RzLCB2aWRlb3MsIGV0Yy4sIGlmIGFwcGxpY2FibGUNCg0KIyMgQXV0b21hdGlvbiB0ZXN0cw0KIC0gVW5pdCB0ZXN0cyANCiAgID4gQ29kZSBjb3ZlcmFnZSBpbmZvcm1hdGlvbg0KIC0gSW50ZWdyYXRpb24gdGVzdHMNCiAgID4gRGV0YWlscyBhYm91dCB0aGUgdGVzdCBjYXNlcyBhbmQgY292ZXJhZ2UNCg0KIyMgU2VjdXJpdHkgY2hlY2tzDQogLSBGb2xsb3dlZCBzZWN1cmUgY29kaW5nIHN0YW5kYXJkcyBpbiBodHRwOi8vd3NvMi5jb20vdGVjaG5pY2FsLXJlcG9ydHMvd3NvMi1zZWN1cmUtZW5naW5lZXJpbmctZ3VpZGVsaW5lcz8geWVzL25vDQogLSBSYW4gRmluZFNlY3VyaXR5QnVncyBwbHVnaW4gYW5kIHZlcmlmaWVkIHJlcG9ydD8geWVzL25vDQogLSBDb25maXJtZWQgdGhhdCB0aGlzIFBSIGRvZXNuJ3QgY29tbWl0IGFueSBrZXlzLCBwYXNzd29yZHMsIHRva2VucywgdXNlcm5hbWVzLCBvciBvdGhlciBzZWNyZXRzPyB5ZXMvbm8NCg0KIyMgU2FtcGxlcw0KPiBQcm92aWRlIGhpZ2gtbGV2ZWwgZGV0YWlscyBhYm91dCB0aGUgc2FtcGxlcyByZWxhdGVkIHRvIHRoaXMgZmVhdHVyZQ0KDQojIyBSZWxhdGVkIFBScw0KPiBMaXN0IGFueSBvdGhlciByZWxhdGVkIFBScw0KDQojIyBNaWdyYXRpb25zIChpZiBhcHBsaWNhYmxlKQ0KPiBEZXNjcmliZSBtaWdyYXRpb24gc3RlcHMgYW5kIHBsYXRmb3JtcyBvbiB3aGljaCBtaWdyYXRpb24gaGFzIGJlZW4gdGVzdGVkDQoNCiMjIFRlc3QgZW52aXJvbm1lbnQNCj4gTGlzdCBhbGwgSkRLIHZlcnNpb25zLCBvcGVyYXRpbmcgc3lzdGVtcywgZGF0YWJhc2VzLCBhbmQgYnJvd3Nlci92ZXJzaW9ucyBvbiB3aGljaCB0aGlzIGZlYXR1cmUvZml4IHdhcyB0ZXN0ZWQNCiANCiMjIExlYXJuaW5nDQo+IERlc2NyaWJlIHRoZSByZXNlYXJjaCBwaGFzZSBhbmQgYW55IGJsb2cgcG9zdHMsIHBhdHRlcm5zLCBsaWJyYXJpZXMsIG9yIGFkZC1vbnMgeW91IHVzZWQgdG8gc29sdmUgdGhlIHByb2JsZW0u";
-    // Prepare the content file payload
     json issueTemplate = {
         message: "Add PR Template",
         content: templateContent,
         branch: "main"
     };
-
-    // Construct the API path
     string apiPath = string `/repos/${organization}/${repository}/contents/pull_request_template.md`;
     http:Response response = check githubClient->put(apiPath, issueTemplate);
     io:print("Response: ", response.getJsonPayload());
@@ -178,13 +178,14 @@ public function addPRTemplate(string organization, string repository, string aut
 }
 
 # Description.
-#
-# + organization - parameter description  
-# + repository - parameter description  
-# + branch_protection - parameter description  
-# + authToken - parameter description
-# + return - return value description
-public isolated function addBranchProtection(string organization, string repository, string branch_protection, string authToken) returns http:Response | error {
+# API Call to add branch protection to a repository
+# + organization - organization name 
+# + repository - repository name 
+# + branch_protection - branch protection type (Default/Bal)
+# + authToken - GitHub Personal Access Token
+# + return - http response
+public isolated function addBranchProtection(string organization, string repository, string branch_protection, string authToken) 
+returns http:Response | error {
     io:println("Accessing addBranchProtection() function");
     http:Client githubClient = check new ("https://api.github.com", {
         auth: {
@@ -219,10 +220,10 @@ public isolated function addBranchProtection(string organization, string reposit
 }
 
 # Description.
-#
-# + organization - parameter description  
-# + teams - parameter description
-# + return - return value description
+# Function to add Default teams to team list
+# + organization - organization name
+# + teams - list of teams
+# + return - updated list of teams
 public isolated function addDefaultTeams(string organization, string[] teams) returns string[]{
     teams.push("Infra");
     teams.push("gitopslab-all");
@@ -250,9 +251,9 @@ public isolated function addDefaultTeams(string organization, string[] teams) re
 }
 
 # Description.
-#
-# + teamList - parameter description
-# + return - return value description
+# Function to create slugs for team names
+# + teamList - list of team names
+# + return - list of slugs
 public isolated function createSlug(string[] teamList) returns string[] {
     string[] slugs = [];
     foreach string name in teamList {
@@ -265,14 +266,14 @@ public isolated function createSlug(string[] teamList) returns string[] {
 }
 
 # Description.
-#
-# + organization - parameter description  
-# + repository - parameter description  
-# + teams - parameter description  
-# + enable_triage_wso2all - parameter description  
-# + enable_triage_wso2allinterns - parameter description  
-# + authToken - parameter description
-# + return - return value description
+# API Call to add teams to a repository
+# + organization - organization name  
+# + repository - repository name 
+# + teams - list of teams to be added 
+# + enable_triage_wso2all - enable triage for wso2all team 
+# + enable_triage_wso2allinterns - enable triage for wso2allinterns team
+# + authToken - GitHub Personal Access Token
+# + return - http response
 public isolated function addTeams(string organization, string repository, string[] teams, boolean enable_triage_wso2all,boolean enable_triage_wso2allinterns,string authToken) returns http:Response[] | error {
     io:println("Accessing addTeams() function");
     http:Client githubClient = check new ("https://api.github.com", {
@@ -313,6 +314,5 @@ public isolated function addTeams(string organization, string repository, string
         io:println("______________________________");
         responses.push(response);
     }
-    
     return responses;
 }
