@@ -175,6 +175,13 @@ service / on new http:Listener(9090) {
             };
         }
 
+        if repoRequest.approvalState == "approved" {
+            io:println("Repository request is already approved.");
+            return <http:InternalServerError>{
+                body: "Repository request is already approved."
+            };
+        }
+
         // Create Repository on GitHub
         http:Response | error repoCreationResponse = gh:createGitHubRepository(repoRequest);
         if repoCreationResponse is error {

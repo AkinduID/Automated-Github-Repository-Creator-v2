@@ -1,4 +1,5 @@
 import ballerina/sql;
+import ballerinax/mysql;
 
 // Database Configuration record type
 type DatabaseConfig record {|
@@ -7,6 +8,7 @@ type DatabaseConfig record {|
     string database; // Name of the database
     string host;  // Host of the database
     int port; // Port
+    mysql:SSLMode sslMode; // SSL mode
 |};
 
 // RepositoryRequest record type.

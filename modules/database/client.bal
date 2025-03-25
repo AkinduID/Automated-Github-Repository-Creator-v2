@@ -8,5 +8,11 @@ final mysql:Client dbClient = check new (
     password = dbConfig.password,
     database = dbConfig.database,
     host = dbConfig.host,
-    port = dbConfig.port
+    port = dbConfig.port,
+    options = {
+        ssl: {
+            mode: dbConfig.sslMode // Set the desired SSL mode
+        }
+    }
+    
 );
