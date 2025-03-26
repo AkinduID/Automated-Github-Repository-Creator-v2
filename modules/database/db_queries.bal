@@ -42,14 +42,13 @@ isolated function getRepositoryRequestsByLeadQuery(string lead_email) returns sq
 
 // Query to insert a new repository request
 isolated function insertRepositoryRequestQuery(RepositoryRequestCreate payload) returns sql:ParameterizedQuery => `
-    INSERT INTO repository_requests
-        (
+    INSERT INTO repository_requests (
             email, lead_email, requirement, cc_list,
             repo_name, organization, repo_type, description, enable_issues, website_url, topics, 
             pr_protection, teams, enable_triage_wso2all, enable_triage_wso2allinterns, disable_triage_reason,
             cicd_requirement, jenkins_job_type, jenkins_group_id, azure_devops_org, azure_devops_project,
             approval_state, comments
-        )
+    )
     VALUES
         (
             ${payload.email}, ${payload.lead_email}, ${payload.requirement}, ${payload.ccList},

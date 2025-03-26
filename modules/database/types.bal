@@ -1,8 +1,9 @@
 import ballerina/sql;
 import ballerinax/mysql;
 
-// Database Configuration record type
+// Database Configuration record type set#
 type DatabaseConfig record {|
+    # user
     string user; // User of the database
     string password; // Password of the database
     string database; // Name of the database
@@ -13,8 +14,8 @@ type DatabaseConfig record {|
 
 // RepositoryRequest record type.
 public type RepositoryRequest record {|
-    @sql:Column {name: "id"} readonly int id;// Repository Request ID
-    @sql:Column {name: "email"} string email; // Email of the requester
+    @sql:Column {name: "id"}readonly int id;// Repository Request ID #todo:separate to two lines.
+    @sql:Column {name: "email"}string email; // Email of the requester
     @sql:Column {name: "lead_email"} string lead_email; // Email of the lead
     @sql:Column {name: "requirement"} string requirement; // Requirement details
     @sql:Column {name: "cc_list"} string ccList; // CC List for the request

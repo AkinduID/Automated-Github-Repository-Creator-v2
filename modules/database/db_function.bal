@@ -21,10 +21,10 @@ public isolated function getPat(string organization) returns string {
     }
 }
 
-# Description.
-# get a specific repository request by id
-# + id - repository request id
-# + return - RepositoryRequest object or sql:Error
+# Get a specific repository request by id.
+# 
+# + id - Repository request id
+# + return - RepositoryRequest object
 public isolated function getRepositoryRequest(int id) returns RepositoryRequest|sql:Error {
     io:println(" - Running getRepositoryRequest() Function");
     RepositoryRequest|sql:Error result = dbClient->queryRow(getRepositoryRequestQuery(id));
