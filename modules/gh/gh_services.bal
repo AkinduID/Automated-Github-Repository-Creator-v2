@@ -4,6 +4,39 @@ import ballerina/regex;
 import ballerina/io;
 
 # Description.
+# get the list of teams in a GitHub organization
+# + organization - organization name
+# + return - list of teams or error
+public function getTeamsbyOrg(string organization) returns string[]|error {
+    string authToken = database:getPat(organization);
+    http:Client githubClient = check new ("https://api.github.com", {
+        auth: {
+            token: authToken
+        }
+    });
+    string apiPath = string `/orgs/${organization}/teams`;
+    http:Response|error response = githubClient->get(apiPath);
+    if response is error {
+        return response;
+    }
+    json jsonResponse = check response.getJsonPayload();
+    io:println(jsonResponse); // Debugging output to check the JSON structure
+    string[] teamList = [];
+    if jsonResponse is json[] { // Ensure it is an array
+        foreach var team in jsonResponse {
+            if team is map<json> {
+                string teamName = team["name"].toString();
+                if teamName.includes("-internal-commiters"){
+                    teamList.push(teamName);
+                }
+            }
+        }
+    }
+    return teamList;
+}
+
+
+# Description.
 # create a new GitHub repository
 # + repoRequest - repository request object
 # + return - http:Response or error

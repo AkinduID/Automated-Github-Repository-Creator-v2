@@ -212,27 +212,7 @@ service / on new http:Listener(9090) {
         return repoCreationResponse; // Returning the first response. You might need to handle responses differently.
     }
 
-
-    resource function post emailtest() 
-    returns http:Response|database:RepositoryRequest|http:InternalServerError|error {
-        io:println("Running test() API endpoint");
-
-        database:RepositoryRequest|error repoRequest = database:getRepositoryRequest(7);
-        if repoRequest is error {
-            io:println("Error while retrieving repository request: ", repoRequest);
-            return <http:InternalServerError>{
-                body: "Error while retrieving repository request: " + repoRequest.message()
-            };
-        }
-
-        error? emailError = email:createRepoRequestMail(repoRequest);
-        if emailError is error {
-            io:println("Error while sending email: ", emailError);
-            return <http:InternalServerError>{
-                body: "Error while sending email: " + emailError.message()
-            };
-        }
-        return repoRequest;
-
+    resource function get teams/[string org]() returns string[]|error{
+        return gh:getTeamsbyOrg(org);
     }
 }

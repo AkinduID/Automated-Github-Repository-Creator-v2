@@ -1,8 +1,8 @@
 {
-  "last_build_time": 1742895841608,
-  "last_update_time": 1742877432810,
+  "last_build_time": 1742964333482,
+  "last_update_time": 1742964333482,
   "distribution_version": "2201.12.0",
   "last_modified_time": {
-    "ballerina_crud_application": 1742890059009
+    "ballerina_crud_application": 1742963588455
   }
 }
