@@ -20,9 +20,8 @@ public function getTeamsbyOrg(string organization) returns string[]|error {
         return response;
     }
     json jsonResponse = check response.getJsonPayload();
-    io:println(jsonResponse); // Debugging output to check the JSON structure
     string[] teamList = [];
-    if jsonResponse is json[] { // Ensure it is an array
+    if jsonResponse is json[] {
         foreach var team in jsonResponse {
             if team is map<json> {
                 string teamName = team["name"].toString();
@@ -40,11 +39,8 @@ public function getTeamsbyOrg(string organization) returns string[]|error {
 # create a new GitHub repository
 # + repoRequest - repository request object
 # + return - http:Response or error
-public function createGitHubRepository(database:RepositoryRequest repoRequest) returns 
-http:Response|error {
-
-    // http:Response []|error[] ghServiceResponses;
-    
+public function createGitHubRepository(database:RepositoryRequest repoRequest) 
+returns http:Response|error {
     string repository = repoRequest.repoName;
     string organization = repoRequest.organization;
     string description = repoRequest.description;
