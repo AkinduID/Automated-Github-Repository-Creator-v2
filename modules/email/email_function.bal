@@ -2,8 +2,8 @@ import ballerina/email;
 import ballerina_crud_application.database;
 import ballerina/regex;
 
-# Description.
 # Send an email notifying the creation of a new repository request.
+# 
 # + request - repository request object
 # + return - error
 public function createRepoRequestMail(database:RepositoryRequest request) returns error? {
@@ -23,8 +23,8 @@ public function createRepoRequestMail(database:RepositoryRequest request) return
     check smtpClient->sendMessage(email);
 }
 
-# Description.
 # Send an email notifying the update of a repository request.
+# 
 # + request - repository request object
 # + return - error
 public function updateRepoRequestMail(database:RepositoryRequest request) returns error? {
@@ -44,8 +44,8 @@ public function updateRepoRequestMail(database:RepositoryRequest request) return
     check smtpClient->sendMessage(email);
 }
     
-# Description.
 # Send an email notifying the comment on a repository request.
+# 
 # + request - repository request object
 # + return - error
 public function commentRepoRequestMail(database:RepositoryRequest request) returns error? {
@@ -66,8 +66,8 @@ public function commentRepoRequestMail(database:RepositoryRequest request) retur
     check smtpClient->sendMessage(email);
 }
 
-# Description.
 # Send an email notifying the approval of a repository request.
+# 
 # + request - repository request object
 # + return - error
 public function approveRepoRequestMail(database:RepositoryRequest request) returns error? {
@@ -88,8 +88,8 @@ public function approveRepoRequestMail(database:RepositoryRequest request) retur
     check smtpClient->sendMessage(email);
 }
 
-# Description.
 # Generate the email body for the repository request.
+# 
 # + request - repository request object
 # + return - string
 public function emailBody(database:RepositoryRequest request) returns string {
