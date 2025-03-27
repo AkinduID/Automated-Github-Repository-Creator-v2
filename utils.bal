@@ -36,12 +36,12 @@ returns string[]|error {
 }
 
 
-# Create a new GitHub repository.
-# 
+# Create a new GitHub repository and add requested parameters.
+#  
 # + repoRequest - repository request object
 # + return - http:Response or error
 public function createGitHubRepository(database:RepositoryRequest repoRequest) 
-returns error|null {
+returns error|error[]|null {
     string repository = repoRequest.repoName;
     string organization = repoRequest.organization;
     string description = repoRequest.description;
@@ -61,10 +61,31 @@ returns error|null {
     string authToken = database:getPat(organization);
 
     check gh:createRepository(organization, repository, description, isPrivate, enableIssues, websiteUrl, authToken);
-    check gh:addTopics(organization, repository, topicList, authToken);
-    check gh:addLabels(organization, repository, authToken);
-    check gh:addIssueTemplate(organization, repository, authToken);
-    check gh:addPRTemplate(organization, repository, authToken);
-    check gh:addBranchProtection(organization, repository, branchProtection, authToken);
-    check gh:addTeams(organization, repository, teamList, enableTriageWso2All, enableTriageWso2AllInterns, authToken);
+    error[] errors = [];
+    error? topicError =  gh:addTopics(organization, repository, topicList, authToken);
+    error? labelError = gh:addLabels(organization, repository, authToken);
+    error? issueTemplateError =  gh:addIssueTemplate(organization, repository, authToken);
+    error? issuePrTemplateError = gh:addPRTemplate(organization, repository, authToken);
+    error? branchProtectionError = gh:addBranchProtection(organization, repository, branchProtection, authToken);
+    error? teamError = gh:addTeams(organization, repository, teamList, enableTriageWso2All, enableTriageWso2AllInterns, authToken);
+    if topicError is error {
+        errors.push(topicError);
+    }
+    if labelError is error {
+        errors.push(labelError);
+    }
+    if issueTemplateError is error {
+        errors.push(issueTemplateError);
+    }
+    if issuePrTemplateError is error {
+        errors.push(issuePrTemplateError);
+    }
+    if branchProtectionError is error {
+        errors.push(branchProtectionError);
+    }
+    if teamError is error {
+        errors.push(teamError);
+    }
+
+    return errors.length() > 0 ? errors : null;
 }
