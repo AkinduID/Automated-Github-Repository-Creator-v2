@@ -1,0 +1,96 @@
+<html>
+<head>
+    <style>
+        
+    body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 0; /* Ensures no default body margins */
+        padding: 0; /* Ensures no default body padding */
+    }
+
+    .container {
+        padding: 20px;
+        border: 1px solid #ddd;
+        background-color: #f9f9f9;
+        max-width: 600px; /* Limits the container width for readability in emails */
+        margin: 20px auto; /* Centers the container */
+    }
+
+    .header {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .section {
+        margin-top: 20px;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #555;
+    }
+
+    .content {
+        margin: 5px 0;
+    }
+
+    .highlight {
+        font-weight: bold;
+        color: #333;
+    }
+
+    .link {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <p class="header">New Repository Request {{ request.id }}</p>
+        <p>A new Repository Request had been made. Please Review</p>
+        <p><a href="https://www.github.com">www.github.com</a></p>
+
+        <div class="section">
+            <p class="content"><span class="highlight">Requested By:</span> {{ request.email }}</p>
+            <p class="content"><span class="highlight">Requested From:</span> {{ request.lead_email }}</p>
+            <p class="content"><span class="highlight">Requirement:</span> {{ request.requirement }}</p>
+        </div>
+
+        <div class="section">
+            <p class="section-title">Repository Details</p>
+            <p class="content"><span class="highlight">Repository Name:</span> {{ request.repoName }}</p>
+            <p class="content"><span class="highlight">Organization:</span> {{ request.organization }}</p>
+            <p class="content"><span class="highlight">Description:</span> {{ request.description }}</p>
+            <p class="content"><span class="highlight">Website URL:</span> {{ request.websiteUrl }}</p>
+            <p class="content"><span class="highlight">Topics:</span> {{ request.topics }}</p>
+            <p class="content"><span class="highlight">Enable Issues:</span> {{ request.enableIssues }}</p>
+        </div>
+
+        <div class="section">
+            <p class="section-title">Security Details</p>
+            <p class="content"><span class="highlight">PR Protection:</span> {{ request.prProtection }}</p>
+            <p class="content"><span class="highlight">Teams to be Added:</span> {{ request.teams }}</p>
+            <p class="content"><span class="highlight">Enable Triage for WSO2 All:</span> {{ request.enableTriageWso2All }}</p>
+            <p class="content"><span class="highlight">Enable Triage for WSO2 All Interns:</span> {{ request.enableTriageWso2AllInterns }}</p>
+            <p class="content"><span class="highlight">Disable Triage Reason:</span> {{ request.disableTriageReason }}</p>
+        </div>
+
+        <div class="section">
+            <p class="section-title">DevOps Details</p>
+            <p class="content"><span class="highlight">CICD Requirement:</span> {{ request.cicdRequirement }}</p>
+            <p class="content"><span class="highlight">Jenkins Job Type:</span> {{ request.jenkinsJobType }}</p>
+            <p class="content"><span class="highlight">Jenkins Group ID:</span> {{ request.jenkinsGroupId }}</p>
+            <p class="content"><span class="highlight">Azure DevOps Organization:</span> {{ request.azureDevopsOrg }}</p>
+            <p class="content"><span class="highlight">Azure DevOps Project:</span> {{ request.azureDevopsProject }}</p>
+        </div>
+
+        <p>Best Regards,<br/>DevOps Team</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<html>
+<head>
+    <style>
+       
+    body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 0; /* Ensures no default body margins */
+        padding: 0; /* Ensures no default body padding */
+    }
+
+    .container {
+        padding: 20px;
+        border: 1px solid #ddd;
+        background-color: #f9f9f9;
+        max-width: 600px; /* Limits the container width for readability in emails */
+        margin: 20px auto; /* Centers the container */
+    }
+
+    .header {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .section {
+        margin-top: 20px;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #555;
+    }
+
+    .content {
+        margin: 5px 0;
+    }
+
+    .highlight {
+        font-weight: bold;
+        color: #333;
+    }
+
+    .link {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <p class="header">GitHub Repository Request Approved</p>
+
+        <p class="content">Hi,</p>
+        <p class="content">
+            Your request for creating a new GitHub repository has been approved.
+        </p>
+        
+        <p class="content">
+            <span class="highlight">Repository Link:</span> 
+            <a class="link" href="https://github.com/{{ request.organization }}/{{ request.repoName }}" target="_blank">
+                https://github.com/{{ request.organization }}/{{ request.repoName }}
+            </a>
+        </p>
+
+        <p class="content">
+            DevOps configurations will be handled by the DigiOps Team manually.
+        </p>
+
+        <p>Best Regards,<br/>DevOps Team</p>
+    </div>
+</body>
+</html>
