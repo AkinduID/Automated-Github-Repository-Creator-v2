@@ -1,5 +1,6 @@
 import ballerina_crud_application.database;
 import ballerina_crud_application.email;
+import ballerina_crud_application.github as gh;
 import ballerina/sql;
 import ballerina/http;
 import ballerina/log;
@@ -156,11 +157,11 @@ service / on new http:Listener(9090) {
     # + request - repository request object
     # + return - http:NoContent or error
     resource function patch repository\-requests/[int id]/comments(database:RepositoryRequestUpdate request) returns http:NoContent|http:InternalServerError {
-        log:printInfo("PATCH /repository_requests/" + id.toString() + "/comments - Updating comments");
+        log:printInfo("Running repository_requests/[int id]/comments() API endpoint");
 
-        sql:ExecutionResult | sql:Error result = database:commentRepositoryRequest(id, request);
+        sql:ExecutionResult|sql:Error result = database:commentRepositoryRequest(id, request);
         if result is error {
-            log:printError("Error updating comments: " + result.message());
+            log:printError("Error updating comments: ", result);
             return <http:InternalServerError>{ 
                 body: "Internal Server Error: " + result.message()
             };
@@ -170,7 +171,7 @@ service / on new http:Listener(9090) {
         if updatedRequest is database:RepositoryRequest {
             error? emailError = email:commentRepoRequestMail(updatedRequest);
             if emailError is error {
-                log:printError("Error sending email: " + emailError.message());
+                log:printError("Error sending email: ", emailError);
                 return <http:InternalServerError>{ 
                     body: "Internal Server Error: " + emailError.message()
                 };
@@ -202,12 +203,23 @@ service / on new http:Listener(9090) {
             };
         }
 
-        error? repoCreationResponse = createGitHubRepository(repoRequest);
+        error|error[]|null repoCreationResponse = createGitHubRepository(repoRequest);
         if repoCreationResponse is error {
             log:printError("Error while creating repository on GitHub: ", repoCreationResponse);
             return <http:InternalServerError>{
                 body: "Error while creating repository on GitHub" + repoCreationResponse.message()
             };
+        }
+        if repoCreationResponse is error[] {
+            foreach error err in repoCreationResponse {
+                log:printError("Error adding required parameters to repository: ", err);
+            }
+            return <http:InternalServerError>{
+                body: "Error while creating repository on GitHub" + repoCreationResponse.toString()
+            };
+        }
+        if repoCreationResponse is null {
+            log:printInfo("Repository creation process completed successfully.");
         }
 
         sql:ExecutionResult|sql:Error updateApprovalState = database:approveRepositoryRequest(id); 
@@ -230,5 +242,17 @@ service / on new http:Listener(9090) {
     resource function get teams/[string org]() returns string[]|error {
         log:printInfo("Fetching teams for organization: " + org);
         return getTeams(org);
+    }
+
+    resource function post testing() returns null|string {
+        log:printInfo("Testing API endpoint");
+        string repoName = "bal-repo-005";
+        string orgName = "gitopslab";
+        string pat = database:getPat(orgName);
+        error? LabelsRespnse = gh:addLabels(orgName, repoName, pat);
+        if LabelsRespnse is error {
+            log:printError("Error while adding labels: ", LabelsRespnse);
+            return "Error while adding labels: " + LabelsRespnse.message();
+        }
     }
 }
