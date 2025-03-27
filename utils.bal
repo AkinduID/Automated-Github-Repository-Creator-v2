@@ -1,6 +1,7 @@
 import ballerina/http;
-import ballerina_crud_application.database;
+import ballerina_crud_application.database as db;
 import ballerina_crud_application.github as gh;
+import ballerina_crud_application.email;
 import ballerina/regex;
 
 # Get the list of internal commiter teams in a GitHub organization.
@@ -9,7 +10,7 @@ import ballerina/regex;
 # + return - list of teams or error
 public function getTeams(string organization) 
 returns string[]|error {
-    string authToken = database:getPat(organization);
+    string authToken = db:getPat(organization);
     http:Client githubClient = check new ("https://api.github.com", {
         auth: {
             token: authToken
@@ -40,7 +41,7 @@ returns string[]|error {
 #  
 # + repoRequest - repository request object
 # + return - http:Response or error
-public function createGitHubRepository(database:RepositoryRequest repoRequest) 
+public function createGitHubRepository(db:RepositoryRequest repoRequest) 
 returns error|error[]|null {
     string repository = repoRequest.repoName;
     string organization = repoRequest.organization;
@@ -58,7 +59,7 @@ returns error|error[]|null {
     string[] topicList = regex:split(topicString, ",");
     boolean isPrivate = repoTypeString == "public" ? false : true;
 
-    string authToken = database:getPat(organization);
+    string authToken = db:getPat(organization);
 
     check gh:createRepository(organization, repository, description, isPrivate, enableIssues, websiteUrl, authToken);
     error[] errors = [];
@@ -89,3 +90,119 @@ returns error|error[]|null {
 
     return errors.length() > 0 ? errors : null;
 }
+
+public function convertToEmailObject(db:RepositoryRequest repoRequest)
+returns email:Request{
+    email:Request request = {
+        id: repoRequest.id,
+        email: repoRequest.email,
+        lead_email: repoRequest.lead_email,
+        requirement: repoRequest.requirement,
+        ccList: repoRequest.ccList,
+        repoName: repoRequest.repoName,
+        organization: repoRequest.organization,
+        repoType: repoRequest.repoType,
+        description: repoRequest.description,
+        enableIssues: repoRequest.enableIssues,
+        websiteUrl: repoRequest.websiteUrl,
+        topics: repoRequest.topics,
+        prProtection: repoRequest.prProtection,
+        teams: repoRequest.teams,
+        enableTriageWso2All: repoRequest.enableTriageWso2All,
+        enableTriageWso2AllInterns: repoRequest.enableTriageWso2AllInterns,
+        disableTriageReason: repoRequest.disableTriageReason,
+        cicdRequirement: repoRequest.cicdRequirement,
+        jenkinsJobType: repoRequest.jenkinsJobType,
+        jenkinsGroupId: repoRequest.jenkinsGroupId,
+        azureDevopsOrg: repoRequest.azureDevopsOrg,
+        azureDevopsProject: repoRequest.azureDevopsProject,
+        comments: repoRequest.comments,
+        timestamp: repoRequest.timestamp
+    };
+    return request;
+
+}
+
+// public function convertToCreateRequestEmailObject(db:RepositoryRequest repoRequest) 
+// returns email:createRequest{
+//     email:createRequest request = {
+//         id: repoRequest.id,
+//         email: repoRequest.email,
+//         lead_email: repoRequest.lead_email,
+//         requirement: repoRequest.requirement,
+//         ccList: repoRequest.ccList,
+//         repoName: repoRequest.repoName,
+//         organization: repoRequest.organization,
+//         repoType: repoRequest.repoType,
+//         description: repoRequest.description,
+//         enableIssues: repoRequest.enableIssues,
+//         websiteUrl: repoRequest.websiteUrl,
+//         topics: repoRequest.topics,
+//         prProtection: repoRequest.prProtection,
+//         teams: repoRequest.teams,
+//         enableTriageWso2All: repoRequest.enableTriageWso2All,
+//         enableTriageWso2AllInterns: repoRequest.enableTriageWso2AllInterns,
+//         disableTriageReason: repoRequest.disableTriageReason,
+//         cicdRequirement: repoRequest.cicdRequirement,
+//         jenkinsJobType: repoRequest.jenkinsJobType,
+//         jenkinsGroupId: repoRequest.jenkinsGroupId,
+//         azureDevopsOrg: repoRequest.azureDevopsOrg,
+//         azureDevopsProject: repoRequest.azureDevopsProject,
+//         timestamp: repoRequest.timestamp
+//     };
+//     return request;
+// }
+
+// public function convertToUpdateRequestEmailObject(db:RepositoryRequest oldRequest, db:RepositoryRequest newRequest)
+//     returns email:updateRequest {
+//     email:updateRequest request = {
+//         id: newRequest.id,
+//         email: newRequest.email,
+//         lead_email: newRequest.lead_email,
+//         requirement: newRequest.requirement,
+//         ccList: newRequest.ccList,
+//         repoName: [oldRequest.repoName, newRequest.repoName],
+//         organization: [oldRequest.organization, newRequest.organization],
+//         repoType: [oldRequest.repoType, newRequest.repoType],
+//         description: [oldRequest.description, newRequest.description],
+//         enableIssues: [oldRequest.enableIssues, newRequest.enableIssues],
+//         websiteUrl: [oldRequest.websiteUrl, newRequest.websiteUrl],
+//         topics: [oldRequest.topics, newRequest.topics],
+//         prProtection: [oldRequest.prProtection, newRequest.prProtection],
+//         teams: [oldRequest.teams, newRequest.teams],
+//         enableTriageWso2All: [oldRequest.enableTriageWso2All, newRequest.enableTriageWso2All],
+//         enableTriageWso2AllInterns: [oldRequest.enableTriageWso2AllInterns, newRequest.enableTriageWso2AllInterns],
+//         disableTriageReason: [oldRequest.disableTriageReason, newRequest.disableTriageReason],
+//         cicdRequirement: [oldRequest.cicdRequirement, newRequest.cicdRequirement],
+//         jenkinsJobType: [oldRequest.jenkinsJobType, newRequest.jenkinsJobType],
+//         jenkinsGroupId: [oldRequest.jenkinsGroupId, newRequest.jenkinsGroupId],
+//         azureDevopsOrg: [oldRequest.azureDevopsOrg, newRequest.azureDevopsOrg],
+//         azureDevopsProject: [oldRequest.azureDevopsProject, newRequest.azureDevopsProject]
+//     };
+//     return request;
+// }
+
+// public function convertToCommentRequestEmailObject(db:RepositoryRequest repoRequest)
+//     returns email:commentRequest{
+//     email:commentRequest request = {
+//         id: repoRequest.id,
+//         email: repoRequest.email,
+//         lead_email: repoRequest.lead_email,
+//         ccList: repoRequest.ccList,
+//         comments: repoRequest.comments
+//     };
+//     return request;
+// }
+
+// public function convertToApproveRequestEmailObject(db:RepositoryRequest repoRequest)
+//     returns email:approveRequest{
+//     email:approveRequest request = {
+//         id: repoRequest.id,
+//         email: repoRequest.email,
+//         lead_email: repoRequest.lead_email,
+//         ccList: repoRequest.ccList,
+//         repoName: repoRequest.repoName,
+//         organization: repoRequest.organization
+//     };
+//     return request;
+// }
