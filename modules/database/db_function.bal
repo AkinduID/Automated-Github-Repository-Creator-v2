@@ -48,8 +48,8 @@ public isolated function getRepositoryRequestsByMember(string member_email) retu
 }
 
 
-# Description.
-# get all repository requests for a lead
+# Get all repository requests for a lead.
+# 
 # + lead_email - lead email
 # + return - repository requests for the lead or sql:Error
 public isolated function getRepositoryRequestsByLead(string lead_email) returns RepositoryRequest[]|sql:Error {
@@ -64,8 +64,8 @@ public isolated function getRepositoryRequestsByLead(string lead_email) returns 
     return repositoryRequests;
 }
 
-# Description.
 # insert a new repository request into the database.
+# 
 # + payload - repository request payload
 # + return - newly inserted RepositoryRequest object or sql:Error
 public isolated function insertRepositoryRequest(RepositoryRequestCreate payload) returns RepositoryRequest|sql:Error {
@@ -96,8 +96,8 @@ public isolated function insertRepositoryRequest(RepositoryRequestCreate payload
     return newRow;
 }
 
-# Description.
 # Delete a repository request from the database.
+# 
 # + requestId - repository request ID
 # + return - ExecutionResult or sql:Error
 public isolated function deleteRepositoryRequest(int requestId) returns sql:ExecutionResult|sql:Error {
@@ -105,8 +105,8 @@ public isolated function deleteRepositoryRequest(int requestId) returns sql:Exec
     return dbClient->execute(deleteRepositoryRequestQuery(requestId));
 }
 
-# Description.
 # Update a repository request in the database.
+# 
 # + requestId - repository request ID  
 # + payload - repository request payload
 # + return - ExecutionResult or sql:Error
@@ -115,8 +115,8 @@ public isolated function updateRepositoryRequest(int requestId, RepositoryReques
     return dbClient->execute(updateRepositoryRequestQuery(requestId, payload));
 }
 
-# Description.
-# update comment a repository request in the database.
+# Update comment a repository request in the database.
+# 
 # + requestId - repository request ID
 # + payload - repository request payload. contains only comment field
 # + return - ExecutionResult or sql:Error
@@ -125,8 +125,9 @@ public isolated function commentRepositoryRequest(int requestId, RepositoryReque
     return dbClient->execute(commentRepositoryRequestQuery(requestId, payload));
 }
 
-# Description.
-# change approval state a repository request in the database.
+
+# Change approval state a repository request in the database.
+# 
 # + requestId - repository request ID
 # + return - ExecutionResult or sql:Error
 public isolated function approveRepositoryRequest(int requestId) returns sql:ExecutionResult|sql:Error {
