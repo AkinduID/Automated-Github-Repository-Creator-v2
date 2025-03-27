@@ -1,10 +1,8 @@
 import ballerina/sql;
 import ballerina/io;
 
-// Define the function to fetch repository requests from the database.
-
-# Description.
-# get the personal access token (PAT) for the organization
+# Get the personal access token (PAT) for the organization.
+# 
 # + organization - organization name
 # + return - Personal Access Token (PAT) for the organization
 public isolated function getPat(string organization) returns string {
@@ -33,8 +31,8 @@ public isolated function getRepositoryRequest(int id) returns RepositoryRequest|
 }
 
 
-# Description.
-# get all repository requests created by a user (member or lead)
+# Get all repository requests created by a user (member or lead).
+# 
 # + member_email - member email
 # + return - repository requests created by the user or sql:Error
 public isolated function getRepositoryRequestsByMember(string member_email) returns RepositoryRequest[]|sql:Error {
@@ -65,21 +63,6 @@ public isolated function getRepositoryRequestsByLead(string lead_email) returns 
         };
     return repositoryRequests;
 }
-
-// # Description.
-// # get all repository requests 
-// # + return - repository requests or sql:Error
-// public isolated function getAllRepositoryRequests() returns RepositoryRequest[]|sql:Error {
-//     io:println(" - Running getAllRepositoryRequests() Function");
-//     stream<RepositoryRequest, sql:Error?> resultStream = dbClient->query(getAllRepositoryRequestsQuery());
-//     io:println("   - Result Stream: ", resultStream);
-//     RepositoryRequest[] repositoryRequests = [];
-//     check from RepositoryRequest repositoryRequest in resultStream
-//         do {
-//             repositoryRequests.push(repositoryRequest);
-//         };
-//     return repositoryRequests;
-// }
 
 # Description.
 # insert a new repository request into the database.
