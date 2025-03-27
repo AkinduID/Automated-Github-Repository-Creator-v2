@@ -12,9 +12,11 @@ org = "akindu"
 name = "ballerina_crud_application"
 version = "0.1.0"
 dependencies = [
+	{org = "ballerina", name = "data.jsondata"},
 	{org = "ballerina", name = "email"},
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "lang.array"},
 	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "sql"},
@@ -27,7 +29,7 @@ modules = [
 	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.authorization"},
 	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.database"},
 	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.email"},
-	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.gh"}
+	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.github"}
 ]
 
 [[package]]
@@ -77,6 +79,9 @@ version = "1.1.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.object"}
+]
+modules = [
+	{org = "ballerina", packageName = "data.jsondata", moduleName = "data.jsondata"}
 ]
 
 [[package]]
@@ -185,6 +190,9 @@ version = "0.0.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.__internal"}
+]
+modules = [
+	{org = "ballerina", packageName = "lang.array", moduleName = "lang.array"}
 ]
 
 [[package]]
