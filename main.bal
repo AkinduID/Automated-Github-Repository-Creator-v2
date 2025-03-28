@@ -148,7 +148,7 @@ service / on new http:Listener(9090) {
         return http:NO_CONTENT;
     }
 
-    // TODO: make one endponits for repo request and comment updates, use filtering and jwt data to detmine
+    // TODO: make one endponits for repo request and comment updates, use filtering and jwt data to detmine.
     # Update comments only.
     # 
     # + id - ID of the repository request

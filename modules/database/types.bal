@@ -14,7 +14,7 @@ type DatabaseConfig record {|
 
 // RepositoryRequest record type.
 public type RepositoryRequest record {|
-    @sql:Column {name: "id"}readonly int id;// Repository Request ID #todo:separate to two lines.
+    @sql:Column {name: "id"}readonly int id;// Repository Request ID #TODO:separate to two lines.
     @sql:Column {name: "email"}string email; // Email of the requester
     @sql:Column {name: "lead_email"} string lead_email; // Email of the lead
     @sql:Column {name: "requirement"} string requirement; // Requirement details
