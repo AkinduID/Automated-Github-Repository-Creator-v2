@@ -60,15 +60,20 @@ returns error|error[]|null {
     boolean isPrivate = repoTypeString == "public" ? false : true;
 
     string authToken = db:getPat(organization);
+    http:Client githubClient = check new ("https://api.github.com", {
+        auth: {
+            token: authToken
+        }
+    });
 
-    check gh:createRepository(organization, repository, description, isPrivate, enableIssues, websiteUrl, authToken);
+    check gh:createRepository(organization, repository, description, isPrivate, enableIssues, websiteUrl, githubClient);
     error[] errors = [];
-    error? topicError =  gh:addTopics(organization, repository, topicList, authToken);
-    error? labelError = gh:addLabels(organization, repository, authToken);
-    error? issueTemplateError =  gh:addIssueTemplate(organization, repository, authToken);
-    error? issuePrTemplateError = gh:addPRTemplate(organization, repository, authToken);
-    error? branchProtectionError = gh:addBranchProtection(organization, repository, branchProtection, authToken);
-    error? teamError = gh:addTeams(organization, repository, teamList, enableTriageWso2All, enableTriageWso2AllInterns, authToken);
+    error? topicError =  gh:addTopics(organization, repository, topicList, githubClient);
+    error? labelError = gh:addLabels(organization, repository, githubClient);
+    error? issueTemplateError =  gh:addIssueTemplate(organization, repository, githubClient);
+    error? issuePrTemplateError = gh:addPRTemplate(organization, repository, githubClient);
+    error? branchProtectionError = gh:addBranchProtection(organization, repository, branchProtection, githubClient);
+    error? teamError = gh:addTeams(organization, repository, teamList, enableTriageWso2All, enableTriageWso2AllInterns, githubClient);
     if topicError is error {
         errors.push(topicError);
     }
@@ -91,6 +96,10 @@ returns error|error[]|null {
     return errors.length() > 0 ? errors : null;
 }
 
+# Convert a repository request object to an email object.
+#
+# + repoRequest - repository request object
+# + return - email:Request object
 public function convertToEmailObject(db:RepositoryRequest repoRequest)
 returns email:Request{
     email:Request request = {
@@ -120,7 +129,6 @@ returns email:Request{
         timestamp: repoRequest.timestamp
     };
     return request;
-
 }
 
 // public function convertToCreateRequestEmailObject(db:RepositoryRequest repoRequest) 
