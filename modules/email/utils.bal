@@ -1,5 +1,6 @@
 import ballerina/io;
 import ballerina/regex;
+import ballerina/email;
 
 # Return html content of the email body
 #
@@ -34,4 +35,25 @@ public function createEmailBody(Request request,string templatePath) returns str
     htmlContent = regex:replaceAll(htmlContent, "\\{\\{ request.comments \\}\\}", request.comments is string ? request.comments.toString() : "N/A");
     htmlContent = regex:replaceAll(htmlContent, "\\{\\{ request.timestamp \\}\\}", request.timestamp.toString());
     return htmlContent;
+}
+
+# Send mail using SMTP client
+#
+# + request - request object 
+# + emailBody - html content of the email body
+# + return - error
+public function sendEmail(Request request, string emailBody) returns error?{
+    string[] ccList = regex:split(request.ccList, ",");
+    email:Message email = {
+        to: [request.email,request.lead_email],
+        cc: ccList,
+        bcc: [],
+        subject: string `REQUESTING NEW REPOSITORY [#${request.id}]`,
+        body: emailBody,
+        'from: emailConfig.username,
+        sender: emailConfig.username,
+        replyTo: [],
+        contentType: "text/html"
+    };
+    check smtpClient->sendMessage(email);
 }
