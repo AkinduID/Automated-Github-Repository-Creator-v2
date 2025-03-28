@@ -7,11 +7,8 @@ import ballerina/log;
 
 service / on new http:Listener(9090) {
 
-    // TODO: change endpoint names using hypen  ex: repository\-requests
-    // TODO: change input parameters to a cmel case member_email -> memberEmail
-    // TODO:  format sql qeury to standard
-
-    # Get all repository requests (with optional filtering by user or lead ID).
+    # Get all repository requests (with filtering by user or lead ID).
+    # Used to get requests to be displayed in the frontend.
     # 
     # + memberEmail - email of the member (optional)
     # + leadEmail - email of the lead (optional)
@@ -19,56 +16,53 @@ service / on new http:Listener(9090) {
     resource function get repository\-requests(string? memberEmail = (), string? leadEmail = ()) returns 
     db:RepositoryRequest[]|http:InternalServerError|http:BadRequest|http:NotFound {
         log:printInfo("Running get repository_requests() API endpoint");
-        // TODO: keep one function instesad of two for member and lead. use a filter for function, query function
-        db:RepositoryRequest[]|error response;
-        if memberEmail is string {
-            log:printInfo("Fetching repository requests for member_email: " + memberEmail);
-            response = db:getRepositoryRequestsByMember(memberEmail); 
-        } else if leadEmail is string {
-            log:printInfo("Fetching repository requests for lead_email: " + leadEmail);
-            response = db:getRepositoryRequestsByLead(leadEmail); 
-        } else {
-            log:printError("Invalid request: Both member_email and lead_email are missing.");
+        // check if both memberEmail and leadEmail are null
+        if memberEmail == () && leadEmail == () {
+            log:printError("Both memberEmail and leadEmail cannot be null");
             return <http:BadRequest>{
-                body: "Invalid request. Please provide either member_email or lead_email."
+                body: "Both memberEmail and leadEmail cannot be null"
             };
         }
+        // get the repository requests from the database
+        db:RepositoryRequest[]|sql:Error|sql:NoRowsError response = db:getRepositoryRequestsByUserOrLead(memberEmail, leadEmail);
         if response is error {
-            log:printError("Error while retrieving repository requests: ", response);
-            return <http:InternalServerError>{
-                body: "Error while retrieving repository requests: " + response.message()
-            };
-        }
-        if response.length() == 0 {
-            log:printInfo("No repository requests found for the given criteria.");
-            return <http:NotFound>{
-                body: "No repository requests found for the given criteria."
-            };
+            if response is sql:NoRowsError {
+                log:printInfo("No repository requests found for the given criteria.");
+                return <http:NotFound>{
+                    body: "No repository requests found for the given criteria."
+                };
+            }
+            else{
+                log:printError("Error while retrieving repository requests: ", response);
+                return <http:InternalServerError>{
+                    body: "Error while retrieving repository requests: " + response.message()
+                };
+            }
         }
         log:printInfo("Successfully retrieved repository requests.");
         return response;
     }
 
-    // TODO: handle sql no row error
     # Get a specific repository request by ID.
+    # used to get a specific request details to be displayed in the frontend.
     # 
     # + id - ID of the repository request
     # + return - repository request object or error
     resource function get repository\-requests/[int id]() returns 
     db:RepositoryRequest|http:InternalServerError|http:NotFound {
         log:printInfo("Running get repository_request() API endpoint");
-
+        // get the repository request from the database
         db:RepositoryRequest|error response = db:getRepositoryRequest(id);
         if response is error {
+            if response is sql:NoRowsError {
+                log:printInfo("No repository request found with ID: " + id.toString());
+                return <http:NotFound>{
+                    body: "No repository request found with ID: " + id.toString()
+                };
+            }
             log:printError("Error while retrieving repository request: " + response.message());
             return <http:InternalServerError>{
                 body: "Error while retrieving repository request: " + response.message()
-            };
-        }
-        if response.length() == 0 {
-            log:printInfo("No repository request found for ID: " + id.toString());
-            return <http:NotFound>{
-                body: "No repository request found for the given ID."
             };
         }
         log:printInfo("Successfully retrieved repository request for ID: " + id.toString());
@@ -82,7 +76,7 @@ service / on new http:Listener(9090) {
     resource function post repository\-requests(db:RepositoryRequestCreate request) returns 
     http:Created|http:InternalServerError {
         log:printInfo("Running post repository_requests() API endpoint");
-
+        // insert the repository request into the database
         db:RepositoryRequest|sql:Error response = db:insertRepositoryRequest(request);
         if response is error {
             log:printError("Error while inserting repository request: " + response.message());
@@ -90,6 +84,7 @@ service / on new http:Listener(9090) {
                 body: "Error while inserting repository request: " + response.message()
             };
         }
+        // send an email notifying the creation of the repository request
         email:Request createRequestEmailObject = convertToEmailObject(response);
         error? emailError = email:createRepoRequestMail(createRequestEmailObject);
         if emailError is error {
@@ -127,16 +122,9 @@ service / on new http:Listener(9090) {
     # + return - http:NoContent or error
     resource function patch repository\-requests/[int id](db:RepositoryRequestUpdate request) returns 
     http:NoContent | http:InternalServerError {
-        log:printInfo("PATCH /repository_requests/" + id.toString() + " - Updating request");
+        log:printInfo("Running repository_requests/[int id]() API endpoint");
 
-        // db:RepositoryRequest|error oldRequest = db:getRepositoryRequest(id);
-        // if oldRequest is error {
-        //     log:printError("Error while retrieving repository request: ",oldRequest);
-        //     return <http:InternalServerError>{
-        //         body: "Error while retrieving repository request: " + oldRequest.message()
-        //     };
-        // }
-
+        // update the repository request in the database
         sql:ExecutionResult | sql:Error result = db:updateRepositoryRequest(id, request);
         if result is error {
             log:printError("Error updating request: ",result);
@@ -144,9 +132,10 @@ service / on new http:Listener(9090) {
                 body: "Internal Server Error: " + result.message() 
             };
         }
-
+        // get the updated repository request
         db:RepositoryRequest|error updatedRequest = db:getRepositoryRequest(id);
         if updatedRequest is db:RepositoryRequest {
+            // send an email notifying the update
             email:Request updateRequestEmailObject = convertToEmailObject(updatedRequest);
             error? emailError = email:updateRepoRequestMail(updateRequestEmailObject);
             if emailError is error {
@@ -167,7 +156,7 @@ service / on new http:Listener(9090) {
     # + return - http:NoContent or error
     resource function patch repository\-requests/[int id]/comments(db:RepositoryRequestUpdate request) returns http:NoContent|http:InternalServerError {
         log:printInfo("Running repository_requests/[int id]/comments() API endpoint");
-
+        // update the comments in the database
         sql:ExecutionResult|sql:Error result = db:commentRepositoryRequest(id, request);
         if result is error {
             log:printError("Error updating comments: ", result);
@@ -175,9 +164,10 @@ service / on new http:Listener(9090) {
                 body: "Internal Server Error: " + result.message()
             };
         }
-
+        // get the updated repository request
         db:RepositoryRequest|error updatedRequest = db:getRepositoryRequest(id);
         if updatedRequest is db:RepositoryRequest {
+            // send an email notifying the comment
             email:Request commentRequestEmailObject = convertToEmailObject(updatedRequest);
             error? emailError = email:commentRepoRequestMail(commentRequestEmailObject);
             if emailError is error {
@@ -197,7 +187,7 @@ service / on new http:Listener(9090) {
     resource function patch repository\-requests/[int id]/approve() returns 
     http:Response|http:InternalServerError|http:BadRequest|http:NoContent|null {
         log:printInfo("Running repository_requests/[int id]/approve() API endpoint");
-
+        // get the repository request by ID
         db:RepositoryRequest|error repoRequest = db:getRepositoryRequest(id);
         if repoRequest is error {
             log:printError("Error while retrieving repository request: " + repoRequest.message());
@@ -205,21 +195,23 @@ service / on new http:Listener(9090) {
                 body: "Error while retrieving repository request: " + repoRequest.message()
             };
         }
-
+        // check if the repository request is already approved
         if repoRequest.approvalState == "approved" {
             log:printInfo("Repository request is already approved.");
             return <http:BadRequest>{
                 body: "Repository request is already approved."
             };
         }
-
+        //create the repository on GitHub
         error|error[]|null repoCreationResponse = createGitHubRepository(repoRequest);
+        // check if there are any errors while creating the repository
         if repoCreationResponse is error {
             log:printError("Error while creating repository on GitHub: ", repoCreationResponse);
             return <http:InternalServerError>{
                 body: "Error while creating repository on GitHub" + repoCreationResponse.message()
             };
         }
+        // check if there are any errors while adding required parameters to the repository
         if repoCreationResponse is error[] {
             foreach error err in repoCreationResponse {
                 log:printError("Error adding required parameters to repository: ", err);
@@ -228,10 +220,11 @@ service / on new http:Listener(9090) {
                 body: "Error while creating repository on GitHub" + repoCreationResponse.toString()
             };
         }
+        // check if the repository creation process completed successfully
         if repoCreationResponse is null {
             log:printInfo("Repository creation process completed successfully.");
         }
-
+        // update the approval state of the repository request
         sql:ExecutionResult|sql:Error updateApprovalState = db:approveRepositoryRequest(id); 
         if updateApprovalState is error {
             log:printError("Error while updating approval state: ", updateApprovalState);
@@ -239,6 +232,7 @@ service / on new http:Listener(9090) {
                 body: "Error while updating approval state: " + updateApprovalState.message()
             };
         }
+        // send an email to the user notifying them about the approval
         email:Request approveRepoRequestEmailObject = convertToEmailObject(repoRequest);
         error? emailError = email:approveRepoRequestMail(approveRepoRequestEmailObject);
         if emailError is error {
@@ -249,6 +243,12 @@ service / on new http:Listener(9090) {
         }
         return http:NO_CONTENT;
     }
+
+    # return the list of internal commiter treams in a GitHub organization. 
+    # Used to update frontend forms
+    # 
+    # + org - selected organization
+    # + return - list of teams
     resource function get teams/[string org]() returns string[]|error {
         log:printInfo("Fetching teams for organization: " + org);
         return getTeams(org);
