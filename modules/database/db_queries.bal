@@ -55,86 +55,54 @@ returns sql:ParameterizedQuery => `
 
 # Query to get all repository requests created by a user (member or lead)
 # 
-# + member_email - member email
+# + memberEmail - member email
+# + leadEmail - lead email
 # + return - repository requests created by the user or sql:Error
-isolated function getRepositoryRequestsByUserQuery(string member_email) 
-returns sql:ParameterizedQuery => `
-    SELECT 
-        id, 
-        email, 
-        lead_email, 
-        requirement, 
-        cc_list, 
-        repo_name, 
-        organization, 
-        repo_type, 
-        description, 
-        enable_issues, 
-        website_url, 
-        topics, 
-        pr_protection, 
-        teams, 
-        enable_triage_wso2all, 
-        enable_triage_wso2allinterns, 
-        disable_triage_reason, 
-        cicd_requirement, 
-        jenkins_job_type, 
-        jenkins_group_id, 
-        azure_devops_org, 
-        azure_devops_project, 
-        timestamp, 
-        approval_state, 
-        comments 
-    FROM 
-        repository_requests 
-    WHERE 
-        email = ${member_email};
+# + return - sql:NoRowsError
+isolated function getRepositoryRequestsByUserOrLeadQuery(string? memberEmail, string? leadEmail) 
+returns sql:ParameterizedQuery {
+    return `
+        SELECT 
+            id, 
+            email, 
+            lead_email, 
+            requirement, 
+            cc_list, 
+            repo_name, 
+            organization, 
+            repo_type, 
+            description, 
+            enable_issues, 
+            website_url, 
+            topics, 
+            pr_protection, 
+            teams, 
+            enable_triage_wso2all, 
+            enable_triage_wso2allinterns, 
+            disable_triage_reason, 
+            cicd_requirement, 
+            jenkins_job_type, 
+            jenkins_group_id, 
+            azure_devops_org, 
+            azure_devops_project, 
+            timestamp, 
+            approval_state, 
+            comments 
+        FROM 
+            repository_requests 
+        WHERE 
+            (email = ${memberEmail} OR ${memberEmail} IS NULL) AND 
+            (lead_email = ${leadEmail} OR ${leadEmail} IS NULL);
     `;
-
-    
-# Query to get all repository requests for a lead
-# 
-# + lead_email - lead email
-# + return - repository requests for the lead or sql:Error
-isolated function getRepositoryRequestsByLeadQuery(string lead_email) returns sql:ParameterizedQuery => `
-    SELECT 
-        id, 
-        email, 
-        lead_email, 
-        requirement, 
-        cc_list, 
-        repo_name, 
-        organization, 
-        repo_type, 
-        description, 
-        enable_issues, 
-        website_url, 
-        topics, 
-        pr_protection, 
-        teams, 
-        enable_triage_wso2all, 
-        enable_triage_wso2allinterns, 
-        disable_triage_reason, 
-        cicd_requirement, 
-        jenkins_job_type, 
-        jenkins_group_id, 
-        azure_devops_org, 
-        azure_devops_project, 
-        timestamp, 
-        approval_state, 
-        comments 
-    FROM 
-        repository_requests 
-    WHERE 
-        lead_email = ${lead_email};
-    `;
+}
 
 
 # Query to insert a new repository request
 # 
 # + payload - RepositoryRequestCreate object
 # + return - newly inserted RepositoryRequest object or sql:Error
-isolated function insertRepositoryRequestQuery(RepositoryRequestCreate payload) returns sql:ParameterizedQuery => `
+isolated function insertRepositoryRequestQuery(RepositoryRequestCreate payload) 
+returns sql:ParameterizedQuery => `
     INSERT INTO repository_requests (
             email, lead_email, requirement, cc_list,
             repo_name, organization, repo_type, description, enable_issues, website_url, topics, 
@@ -156,7 +124,8 @@ isolated function insertRepositoryRequestQuery(RepositoryRequestCreate payload) 
 # 
 # + requestId - Repository request id
 # + return - sql:ParameterizedQuery
-isolated function deleteRepositoryRequestQuery(int requestId) returns sql:ParameterizedQuery => `
+isolated function deleteRepositoryRequestQuery(int requestId) 
+returns sql:ParameterizedQuery => `
     DELETE FROM repository_requests WHERE id = ${requestId};
 `;
 
