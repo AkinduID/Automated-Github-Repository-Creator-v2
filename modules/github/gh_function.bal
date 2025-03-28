@@ -11,16 +11,11 @@ import ballerina/data.jsondata;
 # + isPrivate - repository type (false - public/ true - private) 
 # + enableIssues - enable issues  
 # + websiteUrl - website URL (optional)  
-# + authToken - GitHub Personal Access Token
+# + githubClient - GitHub Personal Access Token
 # + return - http response
-public isolated function createRepository(string organization, string repoName, string repoDesc, boolean isPrivate, boolean enableIssues, string? websiteUrl, string authToken) 
+public isolated function createRepository(string organization, string repoName, string repoDesc, boolean isPrivate, boolean enableIssues, string? websiteUrl, http:Client githubClient) 
 returns error|null {
     io:println("Accessing createRepository() function");
-    http:Client githubClient = check new ("https://api.github.com", {
-        auth: {
-            token: authToken
-        }
-    });
     json body = {
         name: repoName,
         'private: isPrivate,
@@ -45,20 +40,14 @@ returns error|null {
 # + organization - organization name  
 # + repository - repository name 
 # + topicList - list of topics to be added  
-# + authToken - GitHub Personal Access Token
+# + githubClient - GitHub Personal Access Token
 # + return - http response
-public isolated function addTopics(string organization, string repository, string[] topicList, string authToken) 
+public isolated function addTopics(string organization, string repository, string[] topicList, http:Client githubClient) 
 returns error|null {
     io:println("Accessing addTopics() function");
-    http:Client githubClient = check new ("https://api.github.com", {
-        auth: {
-            token: authToken
-        }
-    });
     json body = {
         names: topicList
     };
-
     string apiPath = string `/repos/${organization}/${repository}/topics`;
     http:Response response = check githubClient->put(apiPath, body);
     io:println("Response status code: ", response.statusCode);
@@ -71,20 +60,14 @@ returns error|null {
 # 
 # + organization - organization name
 # + repository - repository name
-# + authToken - GitHub Personal Access Token
+# + githubClient - GitHub Personal Access Token
 # + return - http response
-public isolated function addLabels(string organization, string repository, string authToken) 
+public isolated function addLabels(string organization, string repository, http:Client githubClient) 
 returns error|null {
-    http:Client githubClient = check new ("https://api.github.com", {
-        auth: {
-            token: authToken
-        }
-    });
     string filePath = "resources/github_resources/labels.json";
     json labelsJson = check io:fileReadJson(filePath);
     io:println("Labels JSON: ", labelsJson);
     LabelData[] labelList = check jsondata:parseAsType(labelsJson);
-
     string apiPath = string `/repos/${organization}/${repository}/labels`;
     http:Response[] responses = [];
     if labelsJson is json[] {
@@ -108,17 +91,11 @@ returns error|null {
 # 
 # + organization - organization name  
 # + repository - repository name 
-# + authToken - GitHub Personal Access Token 
+# + githubClient - GitHub Personal Access Token 
 # + return - http response
-public function addIssueTemplate(string organization, string repository, string authToken) 
+public function addIssueTemplate(string organization, string repository, http:Client githubClient) 
 returns error|null {
     io:println("Accessing addIssueTemplate() function");
-    http:Client githubClient = check new ("https://api.github.com", {
-        auth: {
-            token: authToken
-        }
-    });
-
     string filePath = "resources/github_resources/issue_template.md";
     string issueTemplate = check io:fileReadString(filePath);
     string encodedIssueTemplate = array:toBase64(issueTemplate .toBytes());
@@ -139,16 +116,11 @@ returns error|null {
 # 
 # + organization - organization name
 # + repository - repository name
-# + authToken - GitHub Personal Access Token 
+# + githubClient - GitHub Personal Access Token 
 # + return - http response
-public function addPRTemplate(string organization, string repository, string authToken) 
+public function addPRTemplate(string organization, string repository, http:Client githubClient) 
 returns error|null {
     io:println("Accessing addPRTemplate() function");
-    http:Client githubClient = check new ("https://api.github.com", {
-        auth: {
-            token: authToken
-        }
-    });
     string filePath = "resources/github_resources/pull_request_template.md";
     string prTemplate = check io:fileReadString(filePath);
     string encodedPrTemplate = array:toBase64(prTemplate .toBytes());
@@ -170,16 +142,11 @@ returns error|null {
 # + organization - organization name 
 # + repository - repository name 
 # + branch_protection - branch protection type (Default/Bal)
-# + authToken - GitHub Personal Access Token
+# + githubClient - GitHub Personal Access Token
 # + return - http response
-public isolated function addBranchProtection(string organization, string repository, string branch_protection, string authToken) 
+public isolated function addBranchProtection(string organization, string repository, string branch_protection, http:Client githubClient) 
 returns error|null {
     io:println("Accessing addBranchProtection() function");
-    http:Client githubClient = check new ("https://api.github.com", {
-        auth: {
-            token: authToken
-        }
-    });
     json payload;
     http:Response response;
     string apiPath;
@@ -214,16 +181,11 @@ returns error|null {
 # + teams - list of teams to be added 
 # + enable_triage_wso2all - enable triage for wso2all team 
 # + enable_triage_wso2allinterns - enable triage for wso2allinterns team
-# + authToken - GitHub Personal Access Token
+# + githubClient - GitHub Personal Access Token
 # + return - http response
-public isolated function addTeams(string organization, string repository, string[] teams, boolean enable_triage_wso2all,boolean enable_triage_wso2allinterns,string authToken) 
+public isolated function addTeams(string organization, string repository, string[] teams, boolean enable_triage_wso2all,boolean enable_triage_wso2allinterns,http:Client githubClient) 
 returns error|null {
     io:println("Accessing addTeams() function");
-    http:Client githubClient = check new ("https://api.github.com", {
-        auth: {
-            token: authToken
-        }
-    });
     json payload;
     string apiPath;
     http:Response response;
