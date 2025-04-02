@@ -4,44 +4,43 @@
 // Dissemination of any information or reproduction of any material contained
 // herein in any form is strictly forbidden, unless permitted by WSO2 expressly.
 // You may not alter or remove any copyright or other notice from copies of this content.
-// import ballerina/regex;
 
 # Send an email notifying the creation of a new repository request.
 # 
-# + request - repository request object
+# + payload - repository request object
 # + return - error
-public function createRepoRequestMail(repositoryRequest request) returns error? {
+public function createRepoRequestMail(map<string> payload) returns error? {
     string templatePath = "resources/email_templates/create_request.html";
-    string emailBody = check createEmailBody(request,templatePath);
-    check sendEmail(request, emailBody);
+    string emailBody = check createEmailBody(payload,templatePath);
+    check sendEmail(payload, emailBody);
 }
 
 # Send an email notifying the update of a repository request.
 # 
-# + updatedRequest - repository request object
+# + payload - repository request object
 # + return - error
-public function updateRepoRequestMail(repositoryRequest updatedRequest) returns error? {
+public function updateRepoRequestMail(map<string> payload) returns error? {
     string templatePath = "resources/email_templates/update_request.html";
-    string emailBody = check createEmailBody(updatedRequest,templatePath);
-    check sendEmail(updatedRequest, emailBody);
+    string emailBody = check createEmailBody(payload,templatePath);
+    check sendEmail(payload, emailBody);
 }
     
 # Send an email notifying the comment on a repository request.
 # 
-# + request - comment object
+# + payload - comment object
 # + return - error
-public function commentRepoRequestMail(repositoryRequest request) returns error? {
+public function commentRepoRequestMail(map<string> payload) returns error? {
     string templatePath = "resources/email_templates/comment_request.html";
-    string emailBody = check createEmailBody(request,templatePath);
-    check sendEmail(request, emailBody);
+    string emailBody = check createEmailBody(payload,templatePath);
+    check sendEmail(payload, emailBody);
 }
 
 # Send an email notifying the approval of a repository request.
 # 
-# + request - repository request object
+# + payload- repository request object
 # + return - error
-public function approveRepoRequestMail(repositoryRequest request) returns error? {
+public function approveRepoRequestMail(map<string> payload) returns error? {
     string templatePath = "resources/email_templates/approve_request.html";
-    string emailBody = check createEmailBody(request,templatePath);
-    check sendEmail(request, emailBody);
+    string emailBody = check createEmailBody(payload,templatePath);
+    check sendEmail(payload, emailBody);
 }
