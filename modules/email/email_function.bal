@@ -6,49 +6,49 @@
 // You may not alter or remove any copyright or other notice from copies of this content.
 
 # Send an email notifying the creation of a new repository request.
-# 
+#
 # + payload - repository request object
 # + return - error
-public isolated function createRepoRequestAlert(map<string> payload) 
+public isolated function createRepoRequestAlert(map<string> payload)
     returns error? { //TODO: rename to sendCreateRepoRequestAlert
 
     string templatePath = "resources/email_templates/create_request.html"; //TODO: configurable paths
-    string emailBody = check createEmailBody(payload,templatePath);
+    string emailBody = check createEmailBody(payload, templatePath);
     check sendEmail(payload, emailBody);
 }
 
 # Send an email notifying the update of a repository request.
-# 
+#
 # + payload - repository request object
 # + return - error
-public isolated function updateRepoRequestAlert(map<string> payload) 
+public isolated function updateRepoRequestAlert(map<string> payload)
     returns error? {
 
     string templatePath = "resources/email_templates/update_request.html";
-    string emailBody = check createEmailBody(payload,templatePath);
+    string emailBody = check createEmailBody(payload, templatePath);
     check sendEmail(payload, emailBody);
 }
-    
+
 # Send an email notifying the comment on a repository request.
-# 
+#
 # + payload - comment object
 # + return - error
-public isolated function commentRepoRequestAlert(map<string> payload) 
+public isolated function commentRepoRequestAlert(map<string> payload)
     returns error? {
 
     string templatePath = "resources/email_templates/comment_request.html";
-    string emailBody = check createEmailBody(payload,templatePath);
+    string emailBody = check createEmailBody(payload, templatePath);
     check sendEmail(payload, emailBody);
 }
 
 # Send an email notifying the approval of a repository request.
-# 
-# + payload- repository request object
+#
+# + payload - repository request object
 # + return - error
-public isolated function approveRepoRequestAlert(map<string> payload) 
+public isolated function approveRepoRequestAlert(map<string> payload)
     returns error? {
 
     string templatePath = "resources/email_templates/approve_request.html";
-    string emailBody = check createEmailBody(payload,templatePath);
+    string emailBody = check createEmailBody(payload, templatePath);
     check sendEmail(payload, emailBody);
 }
