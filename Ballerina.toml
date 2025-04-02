@@ -1,6 +1,6 @@
 [package]
-org = "akindu"
-name = "ballerina_crud_application"
+org = "wso2"
+name = "github_repo_manager"
 version = "0.1.0"
 distribution = "2201.12.0"
 

@@ -8,31 +8,6 @@ dependencies-toml-version = "2"
 distribution-version = "2201.12.0"
 
 [[package]]
-org = "akindu"
-name = "ballerina_crud_application"
-version = "0.1.0"
-dependencies = [
-	{org = "ballerina", name = "data.jsondata"},
-	{org = "ballerina", name = "email"},
-	{org = "ballerina", name = "http"},
-	{org = "ballerina", name = "io"},
-	{org = "ballerina", name = "lang.array"},
-	{org = "ballerina", name = "log"},
-	{org = "ballerina", name = "regex"},
-	{org = "ballerina", name = "sql"},
-	{org = "ballerinai", name = "observe"},
-	{org = "ballerinax", name = "mysql"},
-	{org = "ballerinax", name = "mysql.driver"}
-]
-modules = [
-	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application"},
-	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.authorization"},
-	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.database"},
-	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.email"},
-	{org = "akindu", packageName = "ballerina_crud_application", moduleName = "ballerina_crud_application.github"}
-]
-
-[[package]]
 org = "ballerina"
 name = "auth"
 version = "2.14.0"
@@ -82,20 +57,6 @@ dependencies = [
 ]
 modules = [
 	{org = "ballerina", packageName = "data.jsondata", moduleName = "data.jsondata"}
-]
-
-[[package]]
-org = "ballerina"
-name = "email"
-version = "2.12.0"
-dependencies = [
-	{org = "ballerina", name = "jballerina.java"},
-	{org = "ballerina", name = "log"},
-	{org = "ballerina", name = "mime"},
-	{org = "ballerina", name = "task"}
-]
-modules = [
-	{org = "ballerina", packageName = "email", moduleName = "email"}
 ]
 
 [[package]]
@@ -275,6 +236,9 @@ dependencies = [
 	{org = "ballerina", name = "lang.int"},
 	{org = "ballerina", name = "log"}
 ]
+modules = [
+	{org = "ballerina", packageName = "mime", moduleName = "mime"}
+]
 
 [[package]]
 org = "ballerina"
@@ -390,5 +354,30 @@ name = "mysql.driver"
 version = "1.8.0"
 modules = [
 	{org = "ballerinax", packageName = "mysql.driver", moduleName = "mysql.driver"}
+]
+
+[[package]]
+org = "wso2"
+name = "github_repo_manager"
+version = "0.1.0"
+dependencies = [
+	{org = "ballerina", name = "data.jsondata"},
+	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "lang.array"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "mime"},
+	{org = "ballerina", name = "regex"},
+	{org = "ballerina", name = "sql"},
+	{org = "ballerinai", name = "observe"},
+	{org = "ballerinax", name = "mysql"},
+	{org = "ballerinax", name = "mysql.driver"}
+]
+modules = [
+	{org = "wso2", packageName = "github_repo_manager", moduleName = "github_repo_manager"},
+	{org = "wso2", packageName = "github_repo_manager", moduleName = "github_repo_manager.auth"},
+	{org = "wso2", packageName = "github_repo_manager", moduleName = "github_repo_manager.database"},
+	{org = "wso2", packageName = "github_repo_manager", moduleName = "github_repo_manager.email"},
+	{org = "wso2", packageName = "github_repo_manager", moduleName = "github_repo_manager.github"}
 ]
 
