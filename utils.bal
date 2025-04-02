@@ -1,7 +1,13 @@
+// Copyright (c) 2024, WSO2 LLC. (https://www.wso2.com). All Rights Reserved.
+//
+// This software is the property of WSO2 LLC. and its suppliers, if any.
+// Dissemination of any information or reproduction of any material contained
+// herein in any form is strictly forbidden, unless permitted by WSO2 expressly.
+// You may not alter or remove any copyright or other notice from copies of this content.
 import ballerina/http;
-import ballerina_crud_application.database as db;
-import ballerina_crud_application.github as gh;
-import ballerina_crud_application.email;
+import github_repo_manager.database as db;
+import github_repo_manager.github as gh;
+// import github_repo_manager.email;
 import ballerina/regex;
 
 # Get the list of internal commiter teams in a GitHub organization.
@@ -96,121 +102,32 @@ returns error|error[]|null {
     return errors.length() > 0 ? errors : null;
 }
 
-# Convert a repository request object to an email object.
-#
-# + repoRequest - repository request object
-# + return - email:Request object
-public function convertToEmailObject(db:RepositoryRequest repoRequest)
-returns email:Request{
-    email:Request request = {
-        id: repoRequest.id,
-        email: repoRequest.email,
-        lead_email: repoRequest.lead_email,
-        requirement: repoRequest.requirement,
-        ccList: repoRequest.ccList,
-        repoName: repoRequest.repoName,
-        organization: repoRequest.organization,
-        repoType: repoRequest.repoType,
-        description: repoRequest.description,
-        enableIssues: repoRequest.enableIssues,
-        websiteUrl: repoRequest.websiteUrl,
-        topics: repoRequest.topics,
-        prProtection: repoRequest.prProtection,
-        teams: repoRequest.teams,
-        enableTriageWso2All: repoRequest.enableTriageWso2All,
-        enableTriageWso2AllInterns: repoRequest.enableTriageWso2AllInterns,
-        disableTriageReason: repoRequest.disableTriageReason,
-        cicdRequirement: repoRequest.cicdRequirement,
-        jenkinsJobType: repoRequest.jenkinsJobType,
-        jenkinsGroupId: repoRequest.jenkinsGroupId,
-        azureDevopsOrg: repoRequest.azureDevopsOrg,
-        azureDevopsProject: repoRequest.azureDevopsProject,
-        comments: repoRequest.comments,
-        timestamp: repoRequest.timestamp
+public function createKeyValuePair(db:RepositoryRequest repoRequest) returns map<string> {
+    map<string> keyValPairs = {
+        "id": repoRequest.id.toString(),
+        "email": repoRequest.email,
+        "lead_email": repoRequest.lead_email,
+        "ccList": repoRequest.ccList,
+        "requirement": repoRequest.requirement,
+        "repoName": repoRequest.repoName,
+        "organization": repoRequest.organization,
+        "repoType": repoRequest.repoType,
+        "description": repoRequest.description,
+        "enableIssues": repoRequest.enableIssues.toString(),
+        "websiteUrl": repoRequest.websiteUrl is string ? repoRequest.websiteUrl.toString() : "N/A",
+        "topics": repoRequest.topics,
+        "prProtection": repoRequest.prProtection,
+        "teams": repoRequest.teams,
+        "enableTriageWso2All": repoRequest.enableTriageWso2All.toString(),
+        "enableTriageWso2AllInterns": repoRequest.enableTriageWso2AllInterns.toString(),
+        "disableTriageReason": repoRequest.disableTriageReason is string ? repoRequest.disableTriageReason.toString() : "N/A",
+        "cicdRequirement": repoRequest.cicdRequirement,
+        "jenkinsJobType": repoRequest.jenkinsJobType is string ? repoRequest.jenkinsJobType.toString() : "N/A",
+        "jenkinsGroupId": repoRequest.jenkinsGroupId is string ? repoRequest.jenkinsGroupId.toString() : "N/A",
+        "azureDevopsOrg": repoRequest.azureDevopsOrg is string ? repoRequest.azureDevopsOrg.toString() : "N/A",
+        "azureDevopsProject": repoRequest.azureDevopsProject is string ? repoRequest.azureDevopsProject.toString() : "N/A",
+        "comments": repoRequest.comments is string ? repoRequest.comments.toString() : "N/A",
+        "timestamp": repoRequest.timestamp.toString()
     };
-    return request;
+    return keyValPairs;
 }
-
-// public function convertToCreateRequestEmailObject(db:RepositoryRequest repoRequest) 
-// returns email:createRequest{
-//     email:createRequest request = {
-//         id: repoRequest.id,
-//         email: repoRequest.email,
-//         lead_email: repoRequest.lead_email,
-//         requirement: repoRequest.requirement,
-//         ccList: repoRequest.ccList,
-//         repoName: repoRequest.repoName,
-//         organization: repoRequest.organization,
-//         repoType: repoRequest.repoType,
-//         description: repoRequest.description,
-//         enableIssues: repoRequest.enableIssues,
-//         websiteUrl: repoRequest.websiteUrl,
-//         topics: repoRequest.topics,
-//         prProtection: repoRequest.prProtection,
-//         teams: repoRequest.teams,
-//         enableTriageWso2All: repoRequest.enableTriageWso2All,
-//         enableTriageWso2AllInterns: repoRequest.enableTriageWso2AllInterns,
-//         disableTriageReason: repoRequest.disableTriageReason,
-//         cicdRequirement: repoRequest.cicdRequirement,
-//         jenkinsJobType: repoRequest.jenkinsJobType,
-//         jenkinsGroupId: repoRequest.jenkinsGroupId,
-//         azureDevopsOrg: repoRequest.azureDevopsOrg,
-//         azureDevopsProject: repoRequest.azureDevopsProject,
-//         timestamp: repoRequest.timestamp
-//     };
-//     return request;
-// }
-
-// public function convertToUpdateRequestEmailObject(db:RepositoryRequest oldRequest, db:RepositoryRequest newRequest)
-//     returns email:updateRequest {
-//     email:updateRequest request = {
-//         id: newRequest.id,
-//         email: newRequest.email,
-//         lead_email: newRequest.lead_email,
-//         requirement: newRequest.requirement,
-//         ccList: newRequest.ccList,
-//         repoName: [oldRequest.repoName, newRequest.repoName],
-//         organization: [oldRequest.organization, newRequest.organization],
-//         repoType: [oldRequest.repoType, newRequest.repoType],
-//         description: [oldRequest.description, newRequest.description],
-//         enableIssues: [oldRequest.enableIssues, newRequest.enableIssues],
-//         websiteUrl: [oldRequest.websiteUrl, newRequest.websiteUrl],
-//         topics: [oldRequest.topics, newRequest.topics],
-//         prProtection: [oldRequest.prProtection, newRequest.prProtection],
-//         teams: [oldRequest.teams, newRequest.teams],
-//         enableTriageWso2All: [oldRequest.enableTriageWso2All, newRequest.enableTriageWso2All],
-//         enableTriageWso2AllInterns: [oldRequest.enableTriageWso2AllInterns, newRequest.enableTriageWso2AllInterns],
-//         disableTriageReason: [oldRequest.disableTriageReason, newRequest.disableTriageReason],
-//         cicdRequirement: [oldRequest.cicdRequirement, newRequest.cicdRequirement],
-//         jenkinsJobType: [oldRequest.jenkinsJobType, newRequest.jenkinsJobType],
-//         jenkinsGroupId: [oldRequest.jenkinsGroupId, newRequest.jenkinsGroupId],
-//         azureDevopsOrg: [oldRequest.azureDevopsOrg, newRequest.azureDevopsOrg],
-//         azureDevopsProject: [oldRequest.azureDevopsProject, newRequest.azureDevopsProject]
-//     };
-//     return request;
-// }
-
-// public function convertToCommentRequestEmailObject(db:RepositoryRequest repoRequest)
-//     returns email:commentRequest{
-//     email:commentRequest request = {
-//         id: repoRequest.id,
-//         email: repoRequest.email,
-//         lead_email: repoRequest.lead_email,
-//         ccList: repoRequest.ccList,
-//         comments: repoRequest.comments
-//     };
-//     return request;
-// }
-
-// public function convertToApproveRequestEmailObject(db:RepositoryRequest repoRequest)
-//     returns email:approveRequest{
-//     email:approveRequest request = {
-//         id: repoRequest.id,
-//         email: repoRequest.email,
-//         lead_email: repoRequest.lead_email,
-//         ccList: repoRequest.ccList,
-//         repoName: repoRequest.repoName,
-//         organization: repoRequest.organization
-//     };
-//     return request;
-// }
