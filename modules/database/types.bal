@@ -1,7 +1,13 @@
+// Copyright (c) 2024, WSO2 LLC. (https://www.wso2.com). All Rights Reserved.
+//
+// This software is the property of WSO2 LLC. and its suppliers, if any.
+// Dissemination of any information or reproduction of any material contained
+// herein in any form is strictly forbidden, unless permitted by WSO2 expressly.
+// You may not alter or remove any copyright or other notice from copies of this content.
 import ballerina/sql;
 import ballerinax/mysql;
 
-// Database Configuration record type set#
+// Database Configuration record type set
 type DatabaseConfig record {|
     # user
     string user; // User of the database
