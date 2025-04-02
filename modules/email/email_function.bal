@@ -9,8 +9,10 @@
 # 
 # + payload - repository request object
 # + return - error
-public function createRepoRequestMail(map<string> payload) returns error? {
-    string templatePath = "resources/email_templates/create_request.html";
+public isolated function createRepoRequestAlert(map<string> payload) 
+    returns error? { //TODO: rename to sendCreateRepoRequestAlert
+
+    string templatePath = "resources/email_templates/create_request.html"; //TODO: configurable paths
     string emailBody = check createEmailBody(payload,templatePath);
     check sendEmail(payload, emailBody);
 }
@@ -19,7 +21,9 @@ public function createRepoRequestMail(map<string> payload) returns error? {
 # 
 # + payload - repository request object
 # + return - error
-public function updateRepoRequestMail(map<string> payload) returns error? {
+public isolated function updateRepoRequestAlert(map<string> payload) 
+    returns error? {
+
     string templatePath = "resources/email_templates/update_request.html";
     string emailBody = check createEmailBody(payload,templatePath);
     check sendEmail(payload, emailBody);
@@ -29,7 +33,9 @@ public function updateRepoRequestMail(map<string> payload) returns error? {
 # 
 # + payload - comment object
 # + return - error
-public function commentRepoRequestMail(map<string> payload) returns error? {
+public isolated function commentRepoRequestAlert(map<string> payload) 
+    returns error? {
+
     string templatePath = "resources/email_templates/comment_request.html";
     string emailBody = check createEmailBody(payload,templatePath);
     check sendEmail(payload, emailBody);
@@ -39,7 +45,9 @@ public function commentRepoRequestMail(map<string> payload) returns error? {
 # 
 # + payload- repository request object
 # + return - error
-public function approveRepoRequestMail(map<string> payload) returns error? {
+public isolated function approveRepoRequestAlert(map<string> payload) 
+    returns error? {
+
     string templatePath = "resources/email_templates/approve_request.html";
     string emailBody = check createEmailBody(payload,templatePath);
     check sendEmail(payload, emailBody);
