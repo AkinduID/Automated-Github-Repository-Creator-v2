@@ -1,3 +1,9 @@
+// Copyright (c) 2024, WSO2 LLC. (https://www.wso2.com). All Rights Reserved.
+//
+// This software is the property of WSO2 LLC. and its suppliers, if any.
+// Dissemination of any information or reproduction of any material contained
+// herein in any form is strictly forbidden, unless permitted by WSO2 expressly.
+// You may not alter or remove any copyright or other notice from copies of this content.
 import ballerina/io;
 import ballerina/http;
 import ballerina/lang.array;
@@ -11,7 +17,7 @@ import ballerina/data.jsondata;
 # + isPrivate - repository type (false - public/ true - private) 
 # + enableIssues - enable issues  
 # + websiteUrl - website URL (optional)  
-# + githubClient - GitHub Personal Access Token
+# + githubClient - GitHub Client Object
 # + return - http response
 public isolated function createRepository(string organization, string repoName, string repoDesc, boolean isPrivate, boolean enableIssues, string? websiteUrl, http:Client githubClient) 
 returns error|null {
