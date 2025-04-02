@@ -5,13 +5,12 @@
 // herein in any form is strictly forbidden, unless permitted by WSO2 expressly.
 // You may not alter or remove any copyright or other notice from copies of this content.
 
-# Recordd to represent github label data
-#
-# + name - name of the label  
-# + color - label color
-# + description - label description
+# Record to represent github label data
 public type LabelData record {
+    # Label ID
     string name;
+    # Label color
     string color;
-    string? description;
+    # Label description
+    string description;
 };
