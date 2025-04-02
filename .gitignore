@@ -2,3 +2,4 @@ config.toml
 tests
 target
 .vscode
+.DS_STORE
