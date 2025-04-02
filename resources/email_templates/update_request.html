@@ -1,96 +1,105 @@
+<!DOCTYPE html>
 <html>
 <head>
     <style>
-        
-    body {
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-        margin: 0; /* Ensures no default body margins */
-        padding: 0; /* Ensures no default body padding */
-    }
-
-    .container {
-        padding: 20px;
-        border: 1px solid #ddd;
-        background-color: #f9f9f9;
-        max-width: 600px; /* Limits the container width for readability in emails */
-        margin: 20px auto; /* Centers the container */
-    }
-
-    .header {
-        font-size: 18px;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 10px;
-    }
-
-    .section {
-        margin-top: 20px;
-    }
-
-    .section-title {
-        font-size: 16px;
-        font-weight: bold;
-        color: #555;
-    }
-
-    .content {
-        margin: 5px 0;
-    }
-
-    .highlight {
-        font-weight: bold;
-        color: #333;
-    }
-
-    .link {
-        color: #007bff;
-        text-decoration: none;
-        font-weight: bold;
-    }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f9;
+        }
+        .container {
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            max-width: 600px;
+            margin: 20px auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #ff7300;
+        }
+        .header {
+            font-size: 20px;
+            font-weight: bold;
+            color: #d9534f;
+            border-bottom: 2px solid #ff7300;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .section {
+            margin-top: 20px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff7300;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .content {
+            margin: 5px 0;
+            color: #333;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #000;
+        }
+        .link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <p class="header">Updated Repository Request {{ request.id }}</p>
-        <p>Repository Request had been updated. Please Review</p>
-        <p><a href="https://www.github.com">www.github.com</a></p>
+        <p class="header">Updated Repository Request: {{ id }}</p>
+        <p>The repository request has been updated. Please review the details below:</p>
+        
+        <p><a class="link" href="https://www.github.com">Review on GitHub</a></p>
 
         <div class="section">
-            <p class="content"><span class="highlight">Requested By:</span> {{ request.email }}</p>
-            <p class="content"><span class="highlight">Requested From:</span> {{ request.lead_email }}</p>
-            <p class="content"><span class="highlight">Requirement:</span> {{ request.requirement }}</p>
+            <p class="section-title">Request Details</p>
+            <p class="content"><span class="highlight">Requested By:</span> {{ email }}</p>
+            <p class="content"><span class="highlight">Lead Approver:</span> {{ lead_email }}</p>
+            <p class="content"><span class="highlight">Requirement:</span> {{ requirement }}</p>
         </div>
 
         <div class="section">
-            <p class="section-title">Repository Details</p>
-            <p class="content"><span class="highlight">Repository Name:</span> {{ request.repoName }}</p>
-            <p class="content"><span class="highlight">Organization:</span> {{ request.organization }}</p>
-            <p class="content"><span class="highlight">Description:</span> {{ request.description }}</p>
-            <p class="content"><span class="highlight">Website URL:</span> {{ request.websiteUrl }}</p>
-            <p class="content"><span class="highlight">Topics:</span> {{ request.topics }}</p>
-            <p class="content"><span class="highlight">Enable Issues:</span> {{ request.enableIssues }}</p>
+            <p class="section-title">Repository Information</p>
+            <p class="content"><span class="highlight">Repository Name:</span> {{ repoName }}</p>
+            <p class="content"><span class="highlight">Organization:</span> {{ organization }}</p>
+            <p class="content"><span class="highlight">Description:</span> {{ description }}</p>
+            <p class="content"><span class="highlight">Website URL:</span> {{ websiteUrl }}</p>
+            <p class="content"><span class="highlight">Topics:</span> {{ topics }}</p>
+            <p class="content"><span class="highlight">Enable Issues:</span> {{ enableIssues }}</p>
         </div>
 
         <div class="section">
-            <p class="section-title">Security Details</p>
-            <p class="content"><span class="highlight">PR Protection Enabled:</span> {{ request.prProtection }}</p>
-            <p class="content"><span class="highlight">Teams to be Added:</span> {{ request.teams }}</p>
-            <p class="content"><span class="highlight">Enable Triage for WSO2 All:</span> {{ request.enableTriageWso2All }}</p>
-            <p class="content"><span class="highlight">Enable Triage for WSO2 All Interns:</span> {{ request.enableTriageWso2AllInterns }}</p>
-            <p class="content"><span class="highlight">Disable Triage Reason:</span> {{ request.disableTriageReason }}</p>
+            <p class="section-title">Security & Access</p>
+            <p class="content"><span class="highlight">PR Protection:</span> {{ prProtection }}</p>
+            <p class="content"><span class="highlight">Teams to be Added:</span> {{ teams }}</p>
+            <p class="content"><span class="highlight">Enable Triage (WSO2 All):</span> {{ enableTriageWso2All }}</p>
+            <p class="content"><span class="highlight">Enable Triage (WSO2 All Interns):</span> {{ enableTriageWso2AllInterns }}</p>
+            <p class="content"><span class="highlight">Disable Triage Reason:</span> {{ disableTriageReason }}</p>
         </div>
 
         <div class="section">
-            <p class="section-title">DevOps Details</p>
-            <p class="content"><span class="highlight">CICD Requirement:</span> {{ request.cicdRequirement }}</p>
-            <p class="content"><span class="highlight">Jenkins Job Type:</span> {{ request.jenkinsJobType }}</p>
-            <p class="content"><span class="highlight">Jenkins Group ID:</span> {{ request.jenkinsGroupId }}</p>
-            <p class="content"><span class="highlight">Azure DevOps Organization:</span> {{ request.azureDevopsOrg }}</p>
-            <p class="content"><span class="highlight">Azure DevOps Project:</span> {{ request.azureDevopsProject }}</p>
+            <p class="section-title">DevOps Integration</p>
+            <p class="content"><span class="highlight">CI/CD Requirement:</span> {{ cicdRequirement }}</p>
+            <p class="content"><span class="highlight">Jenkins Job Type:</span> {{ jenkinsJobType }}</p>
+            <p class="content"><span class="highlight">Jenkins Group ID:</span> {{ jenkinsGroupId }}</p>
+            <p class="content"><span class="highlight">Azure DevOps Organization:</span> {{ azureDevopsOrg }}</p>
+            <p class="content"><span class="highlight">Azure DevOps Project:</span> {{ azureDevopsProject }}</p>
         </div>
 
-        <p>Best Regards,<br/>DevOps Team</p>
+        <p class="footer">This is an automated email from the <strong>GitHub Repo Manager</strong> of WSO2. If you have any questions, contact the DevOps Team.</p>
     </div>
 </body>
 </html>
