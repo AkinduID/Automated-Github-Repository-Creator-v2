@@ -14,37 +14,11 @@ import ballerina/mime;
 
 # Description.
 #
-# + request - parameter description  
+# + keyValPairs - parameter description  
 # + templatePath - parameter description
 # + return - return value description
-public function createEmailBody(repositoryRequest request, string templatePath) returns string|error {
+public function createEmailBody(map<string> keyValPairs, string templatePath) returns string|error {
     string htmlContent = check io:fileReadString(templatePath);
-    map<string> keyValPairs = {
-        "request.id": request.id.toString(),
-        "request.email": request.email,
-        "request.lead_email": request.lead_email,
-        "request.ccList": request.ccList,
-        "request.requirement": request.requirement,
-        "request.repoName": request.repoName,
-        "request.organization": request.organization,
-        "request.repoType": request.repoType,
-        "request.description": request.description,
-        "request.enableIssues": request.enableIssues.toString(),
-        "request.websiteUrl": request.websiteUrl is string ? request.websiteUrl.toString() : "N/A",
-        "request.topics": request.topics,
-        "request.prProtection": request.prProtection,
-        "request.teams": request.teams,
-        "request.enableTriageWso2All": request.enableTriageWso2All.toString(),
-        "request.enableTriageWso2AllInterns": request.enableTriageWso2AllInterns.toString(),
-        "request.disableTriageReason": request.disableTriageReason is string ? request.disableTriageReason.toString() : "N/A",
-        "request.cicdRequirement": request.cicdRequirement,
-        "request.jenkinsJobType": request.jenkinsJobType is string ? request.jenkinsJobType.toString() : "N/A",
-        "request.jenkinsGroupId": request.jenkinsGroupId is string ? request.jenkinsGroupId.toString() : "N/A",
-        "request.azureDevopsOrg": request.azureDevopsOrg is string ? request.azureDevopsOrg.toString() : "N/A",
-        "request.azureDevopsProject": request.azureDevopsProject is string ? request.azureDevopsProject.toString() : "N/A",
-        "request.comments": request.comments is string ? request.comments.toString() : "N/A",
-        "request.timestamp": request.timestamp.toString()
-    };
     string updatedContent = keyValPairs.entries().reduce(
         isolated function(string content, [string, string] keyVal) returns string {
             string:RegExp regex = re `\{\{\s*${keyVal[0]}\s*\}\}`;
@@ -55,12 +29,12 @@ public function createEmailBody(repositoryRequest request, string templatePath) 
     return mime:base64Encode(updatedContent).ensureType();
 }
 
-public isolated function sendEmail(repositoryRequest request, string emailBody) returns error? {
+public isolated function sendEmail(map<string> keyValPairs, string emailBody) returns error? {
     EmailPayload payload = {
-        to: [request.email,request.lead_email],
+        to: [keyValPairs["email"].toString(),keyValPairs["lead_email"].toString()],
         'from:"noreply-internal-apps-stg@wso2.com",
-        cc: regex:split(request.ccList, ","),
-        subject: string `REQUESTING NEW REPOSITORY [#${request.id}]`,
+        cc: regex:split(keyValPairs["ccList"].toString(), ","),
+        subject: string `REQUESTING NEW REPOSITORY [#${keyValPairs["id"].toString()}]`,
         template: emailBody
     };
     http:Response|http:ClientError response = emailClient->/send\-email.post(payload);
