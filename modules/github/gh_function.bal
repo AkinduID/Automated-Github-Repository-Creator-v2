@@ -4,13 +4,26 @@
 // Dissemination of any information or reproduction of any material contained
 // herein in any form is strictly forbidden, unless permitted by WSO2 expressly.
 // You may not alter or remove any copyright or other notice from copies of this content.
-import ballerina/io;
-import ballerina/http;
-import ballerina/lang.array;
+
 import ballerina/data.jsondata;
+import ballerina/http;
+import ballerina/io;
+import ballerina/lang.array;
+
+public isolated function createGithubClient(string githubPAT)
+    returns http:Client|error {
+
+    io:println("Accessing createGithubClient() function");
+    http:Client githubClient = check new ("https://api.github.com", {
+        auth: {
+            token: githubPAT
+        }
+    });
+    return githubClient;
+}
 
 # API Call to create a new repository in GitHub.
-# 
+#
 # + organization - Organization name
 # + repoName - repository name 
 # + repoDesc - repository description  
@@ -19,8 +32,9 @@ import ballerina/data.jsondata;
 # + websiteUrl - website URL (optional)  
 # + githubClient - GitHub Client Object
 # + return - http response
-public isolated function createRepository(string organization, string repoName, string repoDesc, boolean isPrivate, boolean enableIssues, string? websiteUrl, http:Client githubClient) 
-returns error|null {
+public isolated function createRepository(string organization, string repoName, string repoDesc, boolean isPrivate, boolean enableIssues, string? websiteUrl, http:Client githubClient)
+    returns error|null {
+
     io:println("Accessing createRepository() function");
     json body = {
         name: repoName,
@@ -38,18 +52,19 @@ returns error|null {
     http:Response response = check githubClient->post(apiPath, body);
     io:println("Response status code: ", response.statusCode);
     io:println("Response: ", response.getJsonPayload());
-    io:println("-----------------------------------------------------------------------");
+    io:println("------------------------------------------------------------------");
 }
 
 # API Call to add topics to a repository.
-# 
+#
 # + organization - organization name  
 # + repository - repository name 
 # + topicList - list of topics to be added  
 # + githubClient - GitHub Personal Access Token
 # + return - http response
-public isolated function addTopics(string organization, string repository, string[] topicList, http:Client githubClient) 
-returns error|null {
+public isolated function addTopics(string organization, string repository, string[] topicList, http:Client githubClient)
+    returns error|null {
+
     io:println("Accessing addTopics() function");
     json body = {
         names: topicList
@@ -58,18 +73,18 @@ returns error|null {
     http:Response response = check githubClient->put(apiPath, body);
     io:println("Response status code: ", response.statusCode);
     io:println("Response: ", response.getJsonPayload());
-    io:println("-----------------------------------------------------------------------");
+    io:println("------------------------------------------------------------------");
 }
 
-
 # API Call to add labels to a repository.
-# 
+#
 # + organization - organization name
 # + repository - repository name
 # + githubClient - GitHub Personal Access Token
 # + return - http response
-public isolated function addLabels(string organization, string repository, http:Client githubClient) 
-returns error|null {
+public isolated function addLabels(string organization, string repository, http:Client githubClient)
+    returns error|null {
+
     string filePath = "resources/github_resources/labels.json";
     json labelsJson = check io:fileReadJson(filePath);
     io:println("Labels JSON: ", labelsJson);
@@ -83,28 +98,28 @@ returns error|null {
                 color: label.color,
                 description: label.description
             };
-            http:Response response = check githubClient->post(apiPath,body);
+            http:Response response = check githubClient->post(apiPath, body);
             responses.push(response);
             io:println("Response status code: ", response.statusCode);
             io:println("Response: ", response.getJsonPayload());
-            io:println("-----------------------------------------------------------------------");
+            io:println("---------------------------------------------------------");
         }
     }
 }
 
-
 # API Call to add issue template to a repository.
-# 
+#
 # + organization - organization name  
 # + repository - repository name 
 # + githubClient - GitHub Personal Access Token 
 # + return - http response
-public function addIssueTemplate(string organization, string repository, http:Client githubClient) 
-returns error|null {
+public isolated function addIssueTemplate(string organization, string repository, http:Client githubClient)
+    returns error|null {
+
     io:println("Accessing addIssueTemplate() function");
     string filePath = "resources/github_resources/issue_template.md";
     string issueTemplate = check io:fileReadString(filePath);
-    string encodedIssueTemplate = array:toBase64(issueTemplate .toBytes());
+    string encodedIssueTemplate = array:toBase64(issueTemplate.toBytes());
 
     json payload = {
         message: "Add Issue Template",
@@ -115,24 +130,25 @@ returns error|null {
     http:Response response = check githubClient->put(apiPath, payload);
     io:println("Response status code: ", response.statusCode);
     io:println("Response: ", response.getJsonPayload());
-    io:println("-----------------------------------------------------------------------");
+    io:println("---------------------------------------------------------------");
 }
 
 # API Call to add pull request template to a repository.
-# 
+#
 # + organization - organization name
 # + repository - repository name
 # + githubClient - GitHub Personal Access Token 
 # + return - http response
-public function addPRTemplate(string organization, string repository, http:Client githubClient) 
-returns error|null {
+public isolated function addPRTemplate(string organization, string repository, http:Client githubClient)
+    returns error|null {
+
     io:println("Accessing addPRTemplate() function");
     string filePath = "resources/github_resources/pull_request_template.md";
     string prTemplate = check io:fileReadString(filePath);
-    string encodedPrTemplate = array:toBase64(prTemplate .toBytes());
+    string encodedPrTemplate = array:toBase64(prTemplate.toBytes());
 
     json payload = {
-        message: "Add PR Template",
+        message: "Add Pull Request Template",
         content: encodedPrTemplate,
         branch: "main"
     };
@@ -140,18 +156,19 @@ returns error|null {
     http:Response response = check githubClient->put(apiPath, payload);
     io:println("Response status code: ", response.statusCode);
     io:println("Response: ", response.getJsonPayload());
-    io:println("-----------------------------------------------------------------------");
+    io:println("------------------------------------------------------------------");
 }
 
 # API Call to add branch protection to a repository.
-# 
+#
 # + organization - organization name 
 # + repository - repository name 
 # + branch_protection - branch protection type (Default/Bal)
 # + githubClient - GitHub Personal Access Token
 # + return - http response
-public isolated function addBranchProtection(string organization, string repository, string branch_protection, http:Client githubClient) 
-returns error|null {
+public isolated function addBranchProtection(string organization, string repository, string branch_protection, http:Client githubClient)
+    returns error|null {
+
     io:println("Accessing addBranchProtection() function");
     json payload;
     http:Response response;
@@ -167,7 +184,7 @@ returns error|null {
         };
         apiPath = string `/repos/${organization}/${repository}/branches/main/protection`;
     }
-    else{
+    else {
         payload = {
             "has_issues": false,
             "has_projects": false
@@ -177,11 +194,13 @@ returns error|null {
     response = check githubClient->put(apiPath, payload);
     io:println("Response: ", response.getJsonPayload());
     io:println("Response status code: ", response.statusCode);
-    io:println("-----------------------------------------------------------------------");
+    io:println("------------------------------------------------------------------");
 }
 
+// TODO: try change boolean types to string in record types and update this function 
+
 # API Call to add teams to a repository.
-# 
+#
 # + organization - organization name  
 # + repository - repository name 
 # + teams - list of teams to be added 
@@ -189,32 +208,34 @@ returns error|null {
 # + enable_triage_wso2allinterns - enable triage for wso2allinterns team
 # + githubClient - GitHub Personal Access Token
 # + return - http response
-public isolated function addTeams(string organization, string repository, string[] teams, boolean enable_triage_wso2all,boolean enable_triage_wso2allinterns,http:Client githubClient) 
-returns error|null {
+public isolated function addTeams(string organization, string repository, string[] teams, boolean enable_triage_wso2all, boolean enable_triage_wso2allinterns, http:Client githubClient)
+    returns error|null {
+
     io:println("Accessing addTeams() function");
     json payload;
     string apiPath;
     http:Response response;
     http:Response[] responses = [];
     string[] updatedTeams = addDefaultTeams(organization, teams);
+
     foreach string team in updatedTeams {
         apiPath = string `/orgs/${organization}/teams/${team}/repos/${organization}/${repository}`;
-        if team.includes("infra") || team.includes("-commiters"){
+        if team.includes("infra") || team.includes("-commiters") {
             payload = {
                 "permission": "push"
             };
-        }
-        else if organization == "wso2-enterprise" && ((team.includes("gitopslab-all") && enable_triage_wso2all) || (team.includes("gitopslab-all-interns") && enable_triage_wso2allinterns)) {
+        } else if organization == "wso2-enterprise" &&
+                ((team.includes("gitopslab-all") && enable_triage_wso2all) ||
+                    (team.includes("gitopslab-all-interns") && enable_triage_wso2allinterns)) {
             payload = {
                 "permission": "triage"
             };
-        }
-        else if (team.includes("gitopslab-all") && enable_triage_wso2all) || (team.includes("gitopslab-all-interns") && enable_triage_wso2allinterns) {
+        } else if organization != "wso2-enterprise" &&
+                (team.includes("gitopslab-all") || team.includes("gitopslab-all-interns")) {
             payload = {
                 "permission": "triage"
             };
-        }
-        else{
+        } else {
             payload = {
                 "permission": "pull"
             };
@@ -222,7 +243,7 @@ returns error|null {
         response = check githubClient->put(apiPath, payload);
         io:println("Team - ", team, "Response status code: ", response.statusCode);
         io:println("Response: ", response);
-        io:println("------------------------------------------------------------------------------");
+        io:println("-------------------------------------------------------------");
         responses.push(response);
     }
 }
