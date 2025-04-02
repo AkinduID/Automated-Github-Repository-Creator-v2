@@ -5,33 +5,7 @@
 // herein in any form is strictly forbidden, unless permitted by WSO2 expressly.
 // You may not alter or remove any copyright or other notice from copies of this content.
 
-public type repositoryRequest record {
-    int id;
-    string email;
-    string lead_email;
-    string requirement;
-    string ccList;
-    string repoName;
-    string organization;
-    string repoType;
-    string description;
-    boolean enableIssues;
-    string? websiteUrl;
-    string topics;
-    string prProtection;
-    string teams;
-    boolean? enableTriageWso2All;
-    boolean? enableTriageWso2AllInterns;
-    string? disableTriageReason;
-    string cicdRequirement;
-    string? jenkinsJobType;
-    string? jenkinsGroupId;
-    string? azureDevopsOrg;
-    string? azureDevopsProject;
-    string|null comments;
-    string timestamp;
-};
-
+# Record to represent the payload for sending an email
 public type EmailPayload record {
     # Recipient email(s) as string array
     string[] to;
