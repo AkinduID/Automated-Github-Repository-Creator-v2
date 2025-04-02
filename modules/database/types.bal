@@ -7,96 +7,197 @@
 import ballerina/sql;
 import ballerinax/mysql;
 
-// Database Configuration record type set
+# Database Configuration record type set
 type DatabaseConfig record {|
     # user
-    string user; // User of the database
-    string password; // Password of the database
-    string database; // Name of the database
-    string host;  // Host of the database
-    int port; // Port
-    mysql:SSLMode sslMode; // SSL mode
+    string user;
+    # password
+    string password;
+    # database
+    string database;
+    # host
+    string host;
+    # port
+    int port;
+    # SSL mode
+    mysql:SSLMode sslMode;
 |};
 
-// RepositoryRequest record type.
+# RepositoryRequest record type.
 public type RepositoryRequest record {|
-    @sql:Column {name: "id"}readonly int id;// Repository Request ID #TODO:separate to two lines.
-    @sql:Column {name: "email"}string email; // Email of the requester
-    @sql:Column {name: "lead_email"} string lead_email; // Email of the lead
-    @sql:Column {name: "requirement"} string requirement; // Requirement details
-    @sql:Column {name: "cc_list"} string ccList; // CC List for the request
-    @sql:Column {name: "repo_name"} string repoName;
-    @sql:Column {name: "organization"} string organization;
-    @sql:Column {name: "repo_type"} string repoType;
-    @sql:Column {name: "description"} string description;
-    @sql:Column {name: "enable_issues"} boolean enableIssues;
-    @sql:Column {name: "website_url"} string? websiteUrl;
-    @sql:Column {name: "topics"} string topics;
-    @sql:Column {name: "pr_protection"} string prProtection;
-    @sql:Column {name: "teams"} string teams;
-    @sql:Column {name: "enable_triage_wso2all"} boolean enableTriageWso2All;
-    @sql:Column {name: "enable_triage_wso2allinterns"} boolean enableTriageWso2AllInterns;
-    @sql:Column {name: "disable_triage_reason"} string? disableTriageReason;
-    @sql:Column {name: "cicd_requirement"} string cicdRequirement;
-    @sql:Column {name: "jenkins_job_type"} string? jenkinsJobType;
-    @sql:Column {name: "jenkins_group_id"} string? jenkinsGroupId;
-    @sql:Column {name: "azure_devops_org"} string? azureDevopsOrg;
-    @sql:Column {name: "azure_devops_project"}string? azureDevopsProject;
-    @sql:Column {name: "timestamp"}string timestamp;
-    @sql:Column {name: "approval_state"}string approvalState;
-    @sql:Column {name: "comments"}string? comments;
-|};
-
-// RepositoryRequest create record type
-public type RepositoryRequestCreate record {|
+    # Repository Request ID
+    @sql:Column {name: "id"}
+    readonly int id;
+    # Email of the requester
+    @sql:Column {name: "email"}
     string email;
-    string lead_email;
+    # Email of the lead
+    @sql:Column {name: "lead_email"}
+    string leadEmail;
+    # Requirement details
+    @sql:Column {name: "requirement"}
     string requirement;
+    # CC List for the request
+    @sql:Column {name: "cc_list"}
     string ccList;
+    # Repository name
+    @sql:Column {name: "repo_name"}
     string repoName;
+    # Organization name
+    @sql:Column {name: "organization"}
     string organization;
+    # Repository type
+    @sql:Column {name: "repo_type"}
     string repoType;
+    # Repository description
+    @sql:Column {name: "description"}
     string description;
-    boolean enableIssues;
+    # Enable issues
+    @sql:Column {name: "enable_issues"}
+    string enableIssues;
+    # Website URL
+    @sql:Column {name: "website_url"}
     string? websiteUrl;
+    # Topics
+    @sql:Column {name: "topics"}
     string topics;
+    # Pull request protection
+    @sql:Column {name: "pr_protection"}
     string prProtection;
+    # Teams
+    @sql:Column {name: "teams"}
     string teams;
-    boolean? enableTriageWso2All;
-    boolean? enableTriageWso2AllInterns;
-    string? disableTriageReason;
+    # Enable triage for WSO2 All team
+    @sql:Column {name: "enable_triage_wso2all"}
+    string enableTriageWso2All;
+    # Enable triage for WSO2 All Interns team
+    @sql:Column {name: "enable_triage_wso2allinterns"}
+    string enableTriageWso2AllInterns;
+    # Reason for disabling triage
+    @sql:Column {name: "disable_triage_reason"}
+    string disableTriageReason;
+    # CI/CD requirement
+    @sql:Column {name: "cicd_requirement"}
     string cicdRequirement;
+    # Jenkins job type
+    @sql:Column {name: "jenkins_job_type"}
     string? jenkinsJobType;
+    # Jenkins group ID
+    @sql:Column {name: "jenkins_group_id"}
     string? jenkinsGroupId;
+    # Azure DevOps organization
+    @sql:Column {name: "azure_devops_org"}
     string? azureDevopsOrg;
+    # Azure DevOps project
+    @sql:Column {name: "azure_devops_project"}
     string? azureDevopsProject;
-    string? approvalState;
-    string? comments;
+    # Timestamp
+    @sql:Column {name: "timestamp"}
+    string timestamp;
+    # Approval state
+    @sql:Column {name: "approval_state"}
+    string approvalState;
+    # Comment
+    @sql:Column {name: "comment"}
+    string? comment;
 |};
 
-// RepositoryRequest update record type
+# RepositoryRequest create record type
+public type RepositoryRequestCreate record {|
+    # Email of the requester
+    string email;
+    # Email of the lead
+    string lead_email;
+    # Requirement details
+    string requirement;
+    # CC List for the request
+    string ccList;
+    # Repository name
+    string repoName;
+    # Organization name
+    string organization;
+    # Repository type
+    string repoType;
+    # Repository description
+    string description;
+    # Enable issues
+    boolean enableIssues;
+    # Website URL
+    string? websiteUrl;
+    # Topics
+    string topics;
+    # Pull request protection
+    string prProtection;
+    # Teams
+    string teams;
+    # Enable triage for WSO2 All team
+    string enableTriageWso2All;
+    # Enable triage for WSO2 All Interns team
+    string enableTriageWso2AllInterns;
+    # Reason for disabling triage
+    string disableTriageReason;
+    # CI/CD requirement
+    string cicdRequirement;
+    # Jenkins job type
+    string? jenkinsJobType;
+    # Jenkins group ID
+    string? jenkinsGroupId;
+    # Azure DevOps organization
+    string? azureDevopsOrg;
+    # Azure DevOps project
+    string? azureDevopsProject;
+    # Approval state
+    string approvalState;
+    # Comment
+    string? comment;
+|};
+
+# RepositoryRequest update record type
 public type RepositoryRequestUpdate record {|
+    # Email of the requester
     string? email = ();
+    # Email of the lead
     string? lead_email = ();
+    # Requirement details
     string? requirement = ();
+    # CC List for the request
     string? ccList = ();
+    # Repository name
     string? repoName = ();
+    # Organization name
     string? organization = ();
+    # Repository type
     string? repoType = ();
+    # Repository description
     string? description = ();
-    boolean? enableIssues = ();
+    # Enable issues
+    string? enableIssues = ();
+    # Website URL
     string? websiteUrl = ();
+    # Topics
     string? topics = ();
+    # Pull request protection
     string? prProtection = ();
+    # Teams
     string? teams = ();
-    boolean? enableTriageWso2All = ();
-    boolean? enableTriageWso2AllInterns = ();
+    # Enable triage for WSO2 All team
+    string? enableTriageWso2All = ();
+    # Enable triage for WSO2 All Interns team
+    string? enableTriageWso2AllInterns = ();
+    # Reason for disabling triage
     string? disableTriageReason = ();
+    # CI/CD requirement
     string? cicdRequirement = ();
+    # Jenkins job type
     string? jenkinsJobType = ();
+    # Jenkins group ID
     string? jenkinsGroupId = ();
+    # Azure DevOps organization
     string? azureDevopsOrg = ();
+    # Azure DevOps project
     string? azureDevopsProject = ();
+    # Approval state
     string? approvalState = ();
-    string? comments = ();
+    # Comment
+    string? comment = ();
 |};
