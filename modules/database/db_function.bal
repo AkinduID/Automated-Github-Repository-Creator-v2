@@ -4,15 +4,19 @@
 // Dissemination of any information or reproduction of any material contained
 // herein in any form is strictly forbidden, unless permitted by WSO2 expressly.
 // You may not alter or remove any copyright or other notice from copies of this content.
-import ballerina/sql;
+
 import ballerina/io;
+import ballerina/sql;
+
+// import github_repo_manager.shared;
 
 # Get the personal access token (PAT) for the organization.
-# 
+#
 # + organization - organization name
 # + return - Personal Access Token (PAT) for the organization
-public isolated function getPat(string organization) 
-returns string {
+public isolated function getPat(string organization)
+    returns string {
+
     io:println(" - Running getPat() Function");
     // Execute the query and return a stream of RepositoryRequest records.
     string|sql:Error result = dbClient->queryRow(getPatQuery(organization));
@@ -27,14 +31,18 @@ returns string {
 }
 
 # Get a specific repository request by id.
-# 
+#
 # + id - Repository request id
 # + return - RepositoryRequest object
-public isolated function getRepositoryRequest(int id) 
-returns RepositoryRequest|sql:Error|sql:NoRowsError {
+public isolated function getRepositoryRequest(int id)
+    returns RepositoryRequest|error|null {
+
     io:println(" - Running getRepositoryRequest() Function");
     RepositoryRequest|sql:Error result = dbClient->queryRow(getRepositoryRequestQuery(id));
     io:println("   - Result: ", result);
+    if result is sql:NoRowsError {
+        return null;
+    }
     return result;
 }
 
@@ -43,25 +51,27 @@ returns RepositoryRequest|sql:Error|sql:NoRowsError {
 # + memberEmail - member email
 # + leadEmail - lead email
 # + return - repository requests created by the user or sql:Error
-public isolated function getRepositoryRequestsByUserOrLead(string? memberEmail, string? leadEmail) 
-returns RepositoryRequest[]|sql:Error|sql:NoRowsError {
+public isolated function getRepositoryRequests(string? memberEmail, string? leadEmail)
+    returns RepositoryRequest[]|sql:Error {
+
     io:println(" - Running getRepositoryRequestsByUserOrLead() Function");
-    stream<RepositoryRequest, sql:Error?> resultStream = dbClient->query(getRepositoryRequestsByUserOrLeadQuery(memberEmail, leadEmail));
+    stream<RepositoryRequest, sql:Error?> resultStream = dbClient->query(getRepositoryRequestsQuery(memberEmail, leadEmail));
     io:println("   - Result Stream: ", resultStream);
     RepositoryRequest[] repositoryRequests = [];
     check from RepositoryRequest repositoryRequest in resultStream
-        do {
+        do { // TODO: use select keyword
             repositoryRequests.push(repositoryRequest);
         };
     return repositoryRequests;
 }
 
 # insert a new repository request into the database.
-# 
+#
 # + payload - repository request payload
 # + return - newly inserted RepositoryRequest object or sql:Error
-public isolated function insertRepositoryRequest(RepositoryRequestCreate payload) 
-returns RepositoryRequest|sql:Error {
+public isolated function insertRepositoryRequest(RepositoryRequestCreate payload)
+    returns RepositoryRequest|sql:Error {
+
     io:println(" - Running insertRepositoryRequests() Function");
 
     // Execute the INSERT query
@@ -90,44 +100,47 @@ returns RepositoryRequest|sql:Error {
 }
 
 # Delete a repository request from the database.
-# 
+#
 # + requestId - repository request ID
 # + return - ExecutionResult or sql:Error
-public isolated function deleteRepositoryRequest(int requestId) 
-returns sql:ExecutionResult|sql:Error {
+public isolated function deleteRepositoryRequest(int requestId)
+    returns sql:ExecutionResult|sql:Error {
+
     io:println(" - Running deleteRepositoryRequests() Function");
     return dbClient->execute(deleteRepositoryRequestQuery(requestId));
 }
 
 # Update a repository request in the database.
-# 
+#
 # + requestId - repository request ID  
 # + payload - repository request payload
 # + return - ExecutionResult or sql:Error
-public isolated function updateRepositoryRequest(int requestId, RepositoryRequestUpdate payload) 
-returns sql:ExecutionResult|sql:Error {
+public isolated function updateRepositoryRequest(int requestId, RepositoryRequestUpdate payload)
+    returns sql:ExecutionResult|sql:Error {
+
     io:println(" - Running updateRepositoryRequests() Function");
     return dbClient->execute(updateRepositoryRequestQuery(requestId, payload));
 }
 
 # Update comment a repository request in the database.
-# 
+#
 # + requestId - repository request ID
 # + payload - repository request payload. contains only comment field
 # + return - ExecutionResult or sql:Error
-public isolated function commentRepositoryRequest(int requestId, RepositoryRequestUpdate payload) 
-returns sql:ExecutionResult|sql:Error {
+public isolated function commentRepositoryRequest(int requestId, RepositoryRequestUpdate payload)
+    returns sql:ExecutionResult|sql:Error {
+
     io:println(" - Running commentRepositoryRequests() Function");
     return dbClient->execute(commentRepositoryRequestQuery(requestId, payload));
 }
 
-
 # Change approval state a repository request in the database.
-# 
+#
 # + requestId - repository request ID
 # + return - ExecutionResult or sql:Error
-public isolated function approveRepositoryRequest(int requestId) 
-returns sql:ExecutionResult|sql:Error {
+public isolated function approveRepositoryRequest(int requestId)
+    returns sql:ExecutionResult|sql:Error {
+
     io:println(" - Running approveRepositoryRequests() Function");
     return dbClient->execute(approveRepositoryRequestQuery(requestId));
 }
