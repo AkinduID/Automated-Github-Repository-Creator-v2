@@ -4,35 +4,39 @@
 // Dissemination of any information or reproduction of any material contained
 // herein in any form is strictly forbidden, unless permitted by WSO2 expressly.
 // You may not alter or remove any copyright or other notice from copies of this content.
-import ballerina/io;
-import ballerina/regex;
+
 import ballerina/http;
+import ballerina/io;
 import ballerina/log;
 import ballerina/mime;
+import ballerina/regex;
 
-// TODO: Test the new function.
-
-# Description.
+# Creates email body from template.
 #
-# + keyValPairs - parameter description  
-# + templatePath - parameter description
-# + return - return value description
-public function createEmailBody(map<string> keyValPairs, string templatePath) returns string|error {
+# + keyValPairs - key value pairs to be replaced in the template
+# + templatePath - path to the email template
+# + return - email body
+public isolated function createEmailBody(map<string> keyValPairs, string templatePath) returns string|error {
     string htmlContent = check io:fileReadString(templatePath);
     string updatedContent = keyValPairs.entries().reduce(
         isolated function(string content, [string, string] keyVal) returns string {
-            string:RegExp regex = re `\{\{\s*${keyVal[0]}\s*\}\}`;
-            return regex.replaceAll(content, keyVal[1]);
-        },
+        string:RegExp regex = re `\{\{\s*${keyVal[0]}\s*\}\}`;
+        return regex.replaceAll(content, keyVal[1]);
+    },
         htmlContent
     );
     return mime:base64Encode(updatedContent).ensureType();
 }
 
+# Sends email using the email client.
+#
+# + keyValPairs - key value pairs
+# + emailBody - email body
+# + return - error
 public isolated function sendEmail(map<string> keyValPairs, string emailBody) returns error? {
     EmailPayload payload = {
-        to: [keyValPairs["email"].toString(),keyValPairs["lead_email"].toString()],
-        'from:"noreply-internal-apps-stg@wso2.com",
+        to: [keyValPairs["email"].toString(), keyValPairs["lead_email"].toString()],
+        'from: "noreply-internal-apps-stg@wso2.com",
         cc: regex:split(keyValPairs["ccList"].toString(), ","),
         subject: string `REQUESTING NEW REPOSITORY [#${keyValPairs["id"].toString()}]`,
         template: emailBody
