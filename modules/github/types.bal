@@ -14,3 +14,13 @@ public type LabelData record {
     # Label description
     string description;
 };
+
+# Record to represent the result of a GitHub operation.
+public type gitHubOperationResult record {
+    # Name of the operation (e.g., "Add Topics", "Add Labels").
+    string operation;
+    # Status of the operation (e.g., "success", "failure").
+    string status;
+    # Optional error message if the operation failed.
+    string|null errorMessage;
+};
