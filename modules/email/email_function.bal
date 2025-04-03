@@ -10,7 +10,7 @@
 # + payload - repository request object
 # + return - error
 public isolated function createRepoRequestAlert(map<string> payload)
-    returns error? { //TODO: rename to sendCreateRepoRequestAlert
+    returns error? {
 
     string templatePath = "resources/email_templates/create_request.html"; //TODO: configurable paths
     string emailBody = check createEmailBody(payload, templatePath);
@@ -44,11 +44,24 @@ public isolated function commentRepoRequestAlert(map<string> payload)
 # Send an email notifying the approval of a repository request.
 #
 # + payload - repository request object
+# + report - map containing the status of GitHub operations
 # + return - error
-public isolated function approveRepoRequestAlert(map<string> payload)
+public isolated function approveRepoRequestAlert(map<string> payload, map<string> report)
     returns error? {
 
     string templatePath = "resources/email_templates/approve_request.html";
+
+    // Generate a summary of GitHub operation results as an HTML list
+    string operationSummary = "<ul>";
+    foreach var [operation, status] in report.entries() {
+        operationSummary += string `<li>${operation}: <strong>${status}</strong></li>`;
+    }
+    operationSummary += "</ul>";
+
+    // Add the operation summary to the payload
+    payload["operationSummary"] = operationSummary;
+
+    // Create the email body
     string emailBody = check createEmailBody(payload, templatePath);
     check sendEmail(payload, emailBody);
 }
