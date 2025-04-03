@@ -45,7 +45,7 @@ public isolated function getTeams(string organization)
 # + repoRequest - repository request object
 # + return - http:Response or error
 public isolated function createGitHubRepository(db:RepositoryRequest repoRequest)
-    returns error|error[]|null { //TODO: error array remove
+    returns gh:gitHubOperationResult[] {
 
     string repository = repoRequest.repoName;
     string organization = repoRequest.organization;
@@ -67,43 +67,49 @@ public isolated function createGitHubRepository(db:RepositoryRequest repoRequest
     boolean enableTriageWso2AllInterns = enableTriageWso2AllInternsString == "Yes" ? true : false;
 
     string authToken = db:getPat(organization);
-    http:Client githubClient = check gh:createGithubClient(authToken);
-
-    check gh:createRepository(organization, repository, description, isPrivate, enableIssues, websiteUrl, githubClient);
-    error[] errors = [];
-    // TODO: create object for success or failure
-    error? topicError = gh:addTopics(organization, repository, topicList, githubClient);
-    error? labelError = gh:addLabels(organization, repository, githubClient);
-    error? issueTemplateError = gh:addIssueTemplate(organization, repository, githubClient);
-    error? issuePrTemplateError = gh:addPRTemplate(organization, repository, githubClient);
-    error? branchProtectionError = gh:addBranchProtection(organization, repository, branchProtection, githubClient);
-    error? teamError = gh:addTeams(organization, repository, teamList, enableTriageWso2All, enableTriageWso2AllInterns, githubClient);
-    if topicError is error {
-        log:printError("Error occurred while adding topics to the repository", topicError);
-        errors.push(topicError);
-    }
-    if labelError is error {
-        log:printError("Error occurred while adding labels to the repository", labelError);
-        errors.push(labelError);
-    }
-    if issueTemplateError is error {
-        log:printError("Error occurred while adding issue template to the repository", issueTemplateError);
-        errors.push(issueTemplateError);
-    }
-    if issuePrTemplateError is error {
-        log:printError("Error occurred while adding PR template to the repository", issuePrTemplateError);
-        errors.push(issuePrTemplateError);
-    }
-    if branchProtectionError is error {
-        log:printError("Error occurred while adding branch protection to the repository", branchProtectionError);
-        errors.push(branchProtectionError);
-    }
-    if teamError is error {
-        log:printError("Error occurred while adding teams to the repository", teamError);
-        errors.push(teamError);
+    http:Client|error githubClient = gh:createGithubClient(authToken);
+    if githubClient is error {
+        log:printError("Error occurred while creating GitHub client");
+        return [
+            {
+                operation: "createGitHubClient",
+                status: "error",
+                errorMessage: "Error occurred while creating GitHub client"
+            }
+        ];
     }
 
-    return errors.length() > 0 ? errors : null;
+    gh:gitHubOperationResult[] gitopresults = [];
+
+    gh:gitHubOperationResult createRepoResult = gh:createRepository(organization, repository, description, isPrivate, enableIssues, websiteUrl, githubClient);
+    gitopresults.push(createRepoResult);
+    if createRepoResult.status is "error" {
+        log:printError("Error occurred while creating the repository");
+        return gitopresults;
+    }
+    gh:gitHubOperationResult addTopicsResult = gh:addTopics(organization, repository, topicList, githubClient);
+    gitopresults.push(addTopicsResult);
+
+    gh:gitHubOperationResult[] labelError = gh:addLabels(organization, repository, githubClient);
+    foreach gh:gitHubOperationResult labelErr in labelError {
+        gitopresults.push(labelErr);
+    }
+
+    gh:gitHubOperationResult issueTemplateError = gh:addIssueTemplate(organization, repository, githubClient);
+    gitopresults.push(issueTemplateError);
+
+    gh:gitHubOperationResult issuePrTemplateError = gh:addPRTemplate(organization, repository, githubClient);
+    gitopresults.push(issuePrTemplateError);
+
+    gh:gitHubOperationResult branchProtectionError = gh:addBranchProtection(organization, repository, branchProtection, githubClient);
+    gitopresults.push(branchProtectionError);
+
+    gh:gitHubOperationResult[] teamError = gh:addTeams(organization, repository, teamList, enableTriageWso2All, enableTriageWso2AllInterns, githubClient);
+    foreach gh:gitHubOperationResult teamErr in teamError {
+        gitopresults.push(teamErr);
+    }
+
+    return gitopresults;
 }
 
 # returns a map of key-value pairs from the repository request object.
@@ -136,8 +142,24 @@ public isolated function createKeyValuePair(db:RepositoryRequest repoRequest)
         "jenkinsGroupId": repoRequest.jenkinsGroupId is string ? repoRequest.jenkinsGroupId.toString() : "N/A",
         "azureDevopsOrg": repoRequest.azureDevopsOrg is string ? repoRequest.azureDevopsOrg.toString() : "N/A",
         "azureDevopsProject": repoRequest.azureDevopsProject is string ? repoRequest.azureDevopsProject.toString() : "N/A",
-        "comment": repoRequest.comment is string ? repoRequest.comment.toString() : "N/A",
+        "lead_comment": repoRequest.leadComment is string ? repoRequest.leadComment.toString() : "N/A",
         "timestamp": repoRequest.timestamp.toString()
     };
     return keyValPairs;
+}
+
+# Returns a keyvaluepair object containing the status of GitHub operations.
+#
+# + gh - github operation result array
+# + return - keyvaluepair object
+public isolated function getGhStatusReport(gh:gitHubOperationResult[] gh)
+    returns map<string> {
+
+    map<string> reportMap = {};
+    foreach gh:gitHubOperationResult result in gh {
+        string operation = result.operation;
+        string status = result.status;
+        reportMap[operation] = string `${status}`;
+    }
+    return reportMap;
 }
