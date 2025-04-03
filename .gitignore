@@ -3,3 +3,4 @@ tests
 target
 .vscode
 .DS_STORE
+.hprof
