@@ -68,16 +68,16 @@ public type RepositoryRequest record {|
     @sql:Column {name: "teams"}
     string teams;
     # Enable triage for WSO2 All team
-    @sql:Column {name: "enable_triage_wso2all"}
+    @sql:Column {name: "enable_triage_wso2_all"}
     string enableTriageWso2All;
     # Enable triage for WSO2 All Interns team
-    @sql:Column {name: "enable_triage_wso2allinterns"}
+    @sql:Column {name: "enable_triage_wso2_all_interns"}
     string enableTriageWso2AllInterns;
     # Reason for disabling triage
     @sql:Column {name: "disable_triage_reason"}
     string disableTriageReason;
     # CI/CD requirement
-    @sql:Column {name: "cicd_requirement"}
+    @sql:Column {name: "ci_cd_requirement"}
     string cicdRequirement;
     # Jenkins job type
     @sql:Column {name: "jenkins_job_type"}
@@ -97,9 +97,9 @@ public type RepositoryRequest record {|
     # Approval state
     @sql:Column {name: "approval_state"}
     string approvalState;
-    # Comment
-    @sql:Column {name: "comment"}
-    string? comment;
+    # lead_comment
+    @sql:Column {name: "lead_comment"}
+    string? leadComment;
 |};
 
 # RepositoryRequest create record type
@@ -148,8 +148,8 @@ public type RepositoryRequestCreate record {|
     string? azureDevopsProject;
     # Approval state
     string approvalState;
-    # Comment
-    string? comment;
+    # lead_comment
+    string? leadComment;
 |};
 
 # RepositoryRequest update record type
@@ -198,6 +198,6 @@ public type RepositoryRequestUpdate record {|
     string? azureDevopsProject = ();
     # Approval state
     string? approvalState = ();
-    # Comment
-    string? comment = ();
+    # lead_comment
+    string? leadComment = ();
 |};
