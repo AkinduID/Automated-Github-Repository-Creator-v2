@@ -33,7 +33,7 @@ public isolated function createGithubClient(string githubPAT)
 # + githubClient - GitHub Client Object
 # + return - http response
 public isolated function createRepository(string organization, string repoName, string repoDesc, boolean isPrivate, boolean enableIssues, string? websiteUrl, http:Client githubClient)
-    returns error|null {
+    returns gitHubOperationResult {
 
     io:println("Accessing createRepository() function");
     json body = {
@@ -42,17 +42,26 @@ public isolated function createRepository(string organization, string repoName, 
         description: repoDesc,
         homepage: websiteUrl, // optional
         has_issues: enableIssues,
-        // default values
-        "has_wiki": false,
-        "auto_init": true,
-        "gitignore_template": "Java",
-        "license_template": "apache-2.0"
+        has_wiki: false,
+        auto_init: true,
+        gitignore_template: "Java",
+        license_template: "apache-2.0"
     };
     string apiPath = string `/orgs/${organization}/repos`;
-    http:Response response = check githubClient->post(apiPath, body);
+    http:Response|error response = githubClient->post(apiPath, body);
+     if response is error {
+        return {
+            operation: "Create Repository",
+            status: "failure",
+            errorMessage: response.message()
+        };
+    }
     io:println("Response status code: ", response.statusCode);
-    io:println("Response: ", response.getJsonPayload());
-    io:println("------------------------------------------------------------------");
+    return {
+        operation: "Create Repository",
+        status: "success",
+        errorMessage: ()
+    };
 }
 
 # API Call to add topics to a repository.
@@ -63,17 +72,27 @@ public isolated function createRepository(string organization, string repoName, 
 # + githubClient - GitHub Personal Access Token
 # + return - http response
 public isolated function addTopics(string organization, string repository, string[] topicList, http:Client githubClient)
-    returns error|null {
+    returns gitHubOperationResult {
 
     io:println("Accessing addTopics() function");
     json body = {
         names: topicList
     };
     string apiPath = string `/repos/${organization}/${repository}/topics`;
-    http:Response response = check githubClient->put(apiPath, body);
+    http:Response|error response = githubClient->put(apiPath, body);
+    if response is error {
+        return {
+            operation: "Add Topics",
+            status: "failure",
+            errorMessage: response.message()
+        };
+    }
     io:println("Response status code: ", response.statusCode);
-    io:println("Response: ", response.getJsonPayload());
-    io:println("------------------------------------------------------------------");
+    return {
+        operation: "Add Topics",
+        status: "success",
+        errorMessage: ()
+    };
 }
 
 # API Call to add labels to a repository.
@@ -83,28 +102,52 @@ public isolated function addTopics(string organization, string repository, strin
 # + githubClient - GitHub Personal Access Token
 # + return - http response
 public isolated function addLabels(string organization, string repository, http:Client githubClient)
-    returns error|null {
+    returns gitHubOperationResult[] {
 
     string filePath = "resources/github_resources/labels.json";
-    json labelsJson = check io:fileReadJson(filePath);
+    json|error labelsJson = io:fileReadJson(filePath);
+    if labelsJson is error {
+        return [{
+            operation: "Add Labels",
+            status: "failure",
+            errorMessage: labelsJson.message()
+        }];
+    }
     io:println("Labels JSON: ", labelsJson);
-    LabelData[] labelList = check jsondata:parseAsType(labelsJson);
+    LabelData[]|error labelList = jsondata:parseAsType(labelsJson);
+    if labelList is error {
+        return [{
+            operation: "Add Labels",
+            status: "failure",
+            errorMessage: labelList.message()
+        }];
+    }
     string apiPath = string `/repos/${organization}/${repository}/labels`;
-    http:Response[] responses = [];
-    if labelsJson is json[] {
-        foreach LabelData label in labelList {
-            json body = {
-                name: label.name,
-                color: label.color,
-                description: label.description
-            };
-            http:Response response = check githubClient->post(apiPath, body);
-            responses.push(response);
-            io:println("Response status code: ", response.statusCode);
-            io:println("Response: ", response.getJsonPayload());
-            io:println("---------------------------------------------------------");
+    gitHubOperationResult[] responses = [];
+    // if labelsJson is json[] {
+    foreach LabelData label in labelList {
+        json body = {
+            name: label.name,
+            color: label.color,
+            description: label.description
+        };
+        http:Response|error response = githubClient->post(apiPath, body);
+        if response is error {
+            responses.push({
+                operation: string `Add Labels ${label.name}`,
+                status: "failure",
+                errorMessage: response.message()
+            });
+        }
+        else{
+            responses.push({
+                operation: string `Add Labels ${label.name}`,
+                status: "success",
+                errorMessage: ()
+            });
         }
     }
+    return responses;
 }
 
 # API Call to add issue template to a repository.
@@ -114,11 +157,18 @@ public isolated function addLabels(string organization, string repository, http:
 # + githubClient - GitHub Personal Access Token 
 # + return - http response
 public isolated function addIssueTemplate(string organization, string repository, http:Client githubClient)
-    returns error|null {
+    returns gitHubOperationResult {
 
     io:println("Accessing addIssueTemplate() function");
     string filePath = "resources/github_resources/issue_template.md";
-    string issueTemplate = check io:fileReadString(filePath);
+    string|error issueTemplate = io:fileReadString(filePath);
+    if issueTemplate is error {
+        return {
+            operation: "Add Issue Template",
+            status: "failure",
+            errorMessage: issueTemplate.message()
+        };
+    }
     string encodedIssueTemplate = array:toBase64(issueTemplate.toBytes());
 
     json payload = {
@@ -127,10 +177,23 @@ public isolated function addIssueTemplate(string organization, string repository
         branch: "main"
     };
     string apiPath = string `/repos/${organization}/${repository}/contents/issue_template.md`;
-    http:Response response = check githubClient->put(apiPath, payload);
+    http:Response|error response = githubClient->put(apiPath, payload);
+    if response is error {
+        return {
+            operation: "Add Issue Template",
+            status: "failure",
+            errorMessage: response.message()
+        };
+    }
     io:println("Response status code: ", response.statusCode);
-    io:println("Response: ", response.getJsonPayload());
-    io:println("---------------------------------------------------------------");
+    return {
+        operation: "Add Issue Template",
+        status: "success",
+        errorMessage: ""
+    };
+    // io:println("Response status code: ", response.statusCode);
+    // io:println("Response: ", response.getJsonPayload());
+    // io:println("---------------------------------------------------------------");
 }
 
 # API Call to add pull request template to a repository.
@@ -140,11 +203,18 @@ public isolated function addIssueTemplate(string organization, string repository
 # + githubClient - GitHub Personal Access Token 
 # + return - http response
 public isolated function addPRTemplate(string organization, string repository, http:Client githubClient)
-    returns error|null {
+    returns gitHubOperationResult {
 
     io:println("Accessing addPRTemplate() function");
     string filePath = "resources/github_resources/pull_request_template.md";
-    string prTemplate = check io:fileReadString(filePath);
+    string|error prTemplate = io:fileReadString(filePath);
+    if prTemplate is error {
+        return {
+            operation: "Add Pull Request Template",
+            status: "failure",
+            errorMessage: prTemplate.message()
+        };
+    }
     string encodedPrTemplate = array:toBase64(prTemplate.toBytes());
 
     json payload = {
@@ -153,10 +223,23 @@ public isolated function addPRTemplate(string organization, string repository, h
         branch: "main"
     };
     string apiPath = string `/repos/${organization}/${repository}/contents/pull_request_template.md`;
-    http:Response response = check githubClient->put(apiPath, payload);
+    http:Response|error response = githubClient->put(apiPath, payload);
+    if response is error {
+        return {
+            operation: "Add PR Template",
+            status: "failure",
+            errorMessage: response.message()
+        };
+    }
     io:println("Response status code: ", response.statusCode);
-    io:println("Response: ", response.getJsonPayload());
-    io:println("------------------------------------------------------------------");
+    return {
+        operation: "Add PR Template",
+        status: "success",
+        errorMessage: ""
+    };
+    // io:println("Response status code: ", response.statusCode);
+    // io:println("Response: ", response.getJsonPayload());
+    // io:println("------------------------------------------------------------------");
 }
 
 # API Call to add branch protection to a repository.
@@ -167,11 +250,10 @@ public isolated function addPRTemplate(string organization, string repository, h
 # + githubClient - GitHub Personal Access Token
 # + return - http response
 public isolated function addBranchProtection(string organization, string repository, string branch_protection, http:Client githubClient)
-    returns error|null {
+    returns gitHubOperationResult{
 
     io:println("Accessing addBranchProtection() function");
     json payload;
-    http:Response response;
     string apiPath;
     if branch_protection == "Default" {
         payload = {
@@ -191,13 +273,24 @@ public isolated function addBranchProtection(string organization, string reposit
         };
         apiPath = string `/repos/${organization}/${repository}`;
     }
-    response = check githubClient->put(apiPath, payload);
-    io:println("Response: ", response.getJsonPayload());
+    http:Response|error response = githubClient->put(apiPath, payload);
+    if response is error {
+        return {
+            operation: "Add Issue Template",
+            status: "failure",
+            errorMessage: response.message()
+        };
+    }
     io:println("Response status code: ", response.statusCode);
-    io:println("------------------------------------------------------------------");
+    return {
+        operation: "Add Issue Template",
+        status: "success",
+        errorMessage: ""
+    };
+    // io:println("Response: ", response.getJsonPayload());
+    // io:println("Response status code: ", response.statusCode);
+    // io:println("------------------------------------------------------------------");
 }
-
-// TODO: try change boolean types to string in record types and update this function 
 
 # API Call to add teams to a repository.
 #
@@ -209,13 +302,13 @@ public isolated function addBranchProtection(string organization, string reposit
 # + githubClient - GitHub Personal Access Token
 # + return - http response
 public isolated function addTeams(string organization, string repository, string[] teams, boolean enable_triage_wso2all, boolean enable_triage_wso2allinterns, http:Client githubClient)
-    returns error|null {
+    returns gitHubOperationResult[] {
 
     io:println("Accessing addTeams() function");
     json payload;
     string apiPath;
-    http:Response response;
-    http:Response[] responses = [];
+    http:Response|error response;
+    gitHubOperationResult[] responses = [];
     string[] updatedTeams = addDefaultTeams(organization, teams);
 
     foreach string team in updatedTeams {
@@ -240,10 +333,21 @@ public isolated function addTeams(string organization, string repository, string
                 "permission": "pull"
             };
         }
-        response = check githubClient->put(apiPath, payload);
-        io:println("Team - ", team, "Response status code: ", response.statusCode);
-        io:println("Response: ", response);
-        io:println("-------------------------------------------------------------");
-        responses.push(response);
+        response = githubClient->put(apiPath, payload);
+        if response is error {
+            responses.push({
+                operation: string `Add Teams ${team}`,
+                status: "failure",
+                errorMessage: response.message()
+            });
+        }
+        else{
+            responses.push({
+                operation: string `Add Teams ${team}`,
+                status: "success",
+                errorMessage: ""
+            });
+        }
     }
+    return responses;
 }
