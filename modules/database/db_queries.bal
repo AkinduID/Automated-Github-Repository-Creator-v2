@@ -41,17 +41,17 @@ isolated function getRepositoryRequestQuery(int id)
         topics, 
         pr_protection, 
         teams, 
-        enable_triage_wso2all, 
-        enable_triage_wso2allinterns, 
+        enable_triage_wso2_all, 
+        enable_triage_wso2_all_interns, 
         disable_triage_reason, 
-        cicd_requirement, 
+        ci_cd_requirement, 
         jenkins_job_type, 
         jenkins_group_id, 
         azure_devops_org, 
         azure_devops_project, 
         timestamp, 
         approval_state, 
-        comment 
+        lead_comment 
     FROM 
         repository_requests 
     WHERE 
@@ -82,17 +82,17 @@ isolated function getRepositoryRequestsQuery(string? memberEmail, string? leadEm
             topics, 
             pr_protection, 
             teams, 
-            enable_triage_wso2all, 
-            enable_triage_wso2allinterns, 
+            enable_triage_wso2_all, 
+            enable_triage_wso2_all_interns, 
             disable_triage_reason, 
-            cicd_requirement, 
+            ci_cd_requirement, 
             jenkins_job_type, 
             jenkins_group_id, 
             azure_devops_org, 
             azure_devops_project, 
             timestamp, 
             approval_state, 
-            comment 
+            lead_comment 
         FROM 
             repository_requests 
         WHERE 
@@ -110,9 +110,9 @@ isolated function insertRepositoryRequestQuery(RepositoryRequestCreate payload)
     INSERT INTO repository_requests (
             email, lead_email, requirement, cc_list,
             repo_name, organization, repo_type, description, enable_issues, website_url, topics, 
-            pr_protection, teams, enable_triage_wso2all, enable_triage_wso2allinterns, disable_triage_reason,
-            cicd_requirement, jenkins_job_type, jenkins_group_id, azure_devops_org, azure_devops_project,
-            approval_state, comment
+            pr_protection, teams, enable_triage_wso2_all, enable_triage_wso2_all_interns, disable_triage_reason,
+            ci_cd_requirement, jenkins_job_type, jenkins_group_id, azure_devops_org, azure_devops_project,
+            approval_state, lead_comment
     )
     VALUES
         (
@@ -120,7 +120,7 @@ isolated function insertRepositoryRequestQuery(RepositoryRequestCreate payload)
             ${payload.repoName}, ${payload.organization}, ${payload.repoType}, ${payload.description}, ${payload.enableIssues}, ${payload.websiteUrl}, ${payload.topics},
             ${payload.prProtection}, ${payload.teams}, ${payload.enableTriageWso2All}, ${payload.enableTriageWso2AllInterns}, ${payload.disableTriageReason},
             ${payload.cicdRequirement}, ${payload.jenkinsJobType}, ${payload.jenkinsGroupId}, ${payload.azureDevopsOrg}, ${payload.azureDevopsProject},
-            ${payload.approvalState}, ${payload.comment}
+            ${payload.approvalState}, ${payload.leadComment}
         )
 `;
 
@@ -155,10 +155,10 @@ isolated function updateRepositoryRequestQuery(int requestId, RepositoryRequestU
         topics = COALESCE(${payload.topics}, topics),
         pr_protection = COALESCE(${payload.prProtection}, pr_protection),
         teams = COALESCE(${payload.topics}, teams),
-        enable_triage_wso2all = COALESCE(${payload.enableTriageWso2All}, enable_triage_wso2all),
-        enable_triage_wso2allinterns = COALESCE(${payload.enableTriageWso2AllInterns}, enable_triage_wso2allinterns),
+        enable_triage_wso2all = COALESCE(${payload.enableTriageWso2All}, enable_triage_wso2_all),
+        enable_triage_wso2_all_interns = COALESCE(${payload.enableTriageWso2AllInterns}, enable_triage_wso2allinterns),
         disable_triage_reason = COALESCE(${payload.disableTriageReason}, disable_triage_reason),
-        cicd_requirement = COALESCE(${payload.cicdRequirement}, cicd_requirement),
+        ci_cd_requirement = COALESCE(${payload.cicdRequirement}, ci_cd_requirement),
         jenkins_job_type = COALESCE(${payload.jenkinsJobType}, jenkins_job_type),
         jenkins_group_id = COALESCE(${payload.jenkinsGroupId}, jenkins_group_id),
         azure_devops_org = COALESCE(${payload.azureDevopsOrg}, azure_devops_org),
@@ -167,7 +167,7 @@ isolated function updateRepositoryRequestQuery(int requestId, RepositoryRequestU
         id = ${requestId};
     `;
 
-# Query to update the comment of a repository request
+# Query to update the lead_comment of a repository request
 #
 # + requestId - Repository request id
 # + payload - RepositoryRequestUpdate object
@@ -177,7 +177,7 @@ isolated function commentRepositoryRequestQuery(int requestId, RepositoryRequest
     UPDATE 
         repository_requests
     SET
-        comment = COALESCE(${payload.comment}, comment)
+        lead_comment = COALESCE(${payload.leadComment}, lead_comment)
     WHERE 
         id = ${requestId};
     `;
