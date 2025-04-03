@@ -6,6 +6,7 @@
 // You may not alter or remove any copyright or other notice from copies of this content.
 import github_repo_manager.database as db;
 import github_repo_manager.email;
+import github_repo_manager.github as gh;
 
 import ballerina/http;
 import ballerina/log;
@@ -122,9 +123,35 @@ service / on new http:Listener(9090) {
     # + request - repository request object
     # + return - http:NoContent or error
     resource function patch repository\-requests/[int id](db:RepositoryRequestUpdate request)
-        returns http:Ok|http:InternalServerError|http:NotFound {
-        log:printInfo("Running repository_requests/[int id]() API endpoint");
+        returns http:Ok|http:InternalServerError|http:NotFound|http:BadRequest {
 
+        log:printInfo("Running repository_requests/[int id]() API endpoint");
+        // get the current repository request by id
+        db:RepositoryRequest|error|null RepoRequest = db:getRepositoryRequest(id);
+        if RepoRequest is error {
+            log:printError("Error while retrieving repository request: " + RepoRequest.message());
+            return <http:InternalServerError>{
+                body: "Error while retrieving repository request:"
+            };
+        }
+        if RepoRequest is null {
+            log:printWarn("No repository request found with ID: " + id.toString());
+            return <http:NotFound>{
+                body: string `No repository request found with ID: ${id}`
+            };
+        }
+        if RepoRequest.approvalState == "Approved" {
+            log:printWarn("Repository request is already approved.");
+            return <http:BadRequest>{
+                body: "Repository request is already approved."
+            };
+        }
+        if RepoRequest.approvalState == "Pending" {
+            log:printWarn("Repository request is pending review.");
+            return <http:BadRequest>{
+                body: "Repository request is pending review."
+            };
+        }
         // update the repository request in the database
         sql:ExecutionResult|sql:Error result = db:updateRepositoryRequest(id, request);
         if result is error {
@@ -166,9 +193,35 @@ service / on new http:Listener(9090) {
     # + request - repository request object
     # + return - http:NoContent or error
     resource function patch repository\-requests/[int id]/comments(db:RepositoryRequestUpdate request)
-        returns http:Ok|http:InternalServerError|http:NotFound {
+        returns http:Ok|http:InternalServerError|http:NotFound|http:BadRequest {
 
         log:printInfo("Running repository_requests/[int id]/comments() API endpoint");
+        // get the current repository request by id
+        db:RepositoryRequest|error|null RepoRequest = db:getRepositoryRequest(id);
+        if RepoRequest is error {
+            log:printError("Error while retrieving repository request: " + RepoRequest.message());
+            return <http:InternalServerError>{
+                body: "Error while retrieving repository request:"
+            };
+        }
+        if RepoRequest is null {
+            log:printWarn("No repository request found with ID: " + id.toString());
+            return <http:NotFound>{
+                body: string `No repository request found with ID: ${id}`
+            };
+        }
+        if RepoRequest.approvalState == "Approved" {
+            log:printWarn("Repository request is already approved.");
+            return <http:BadRequest>{
+                body: "Repository request is already approved."
+            };
+        }
+        if RepoRequest.approvalState == "Rejected" {
+            log:printWarn("Repository request is pending changes");
+            return <http:BadRequest>{
+                body: "Repository request is pending changes."
+            };
+        }
         // update the comments in the database
         sql:ExecutionResult|sql:Error result = db:commentRepositoryRequest(id, request);
         if result is error {
@@ -226,29 +279,34 @@ service / on new http:Listener(9090) {
             };
         }
         // check if the repository request is already approved
-        if repoRequest.approvalState == "approved" {
+        if repoRequest.approvalState == "Approved" {
             log:printInfo("Repository request is already approved.");
             return <http:BadRequest>{
                 body: "Repository request is already approved."
             };
         }
-        //create the repository on GitHub
-        error|error[]|null repoCreationResponse = createGitHubRepository(repoRequest);
-        // check if there are any errors while creating the repository
-        if repoCreationResponse is error {
-            log:printError("Error while creating repository on GitHub: ", repoCreationResponse);
-            return <http:InternalServerError>{
-                body: "Error while creating repository on GitHub" + repoCreationResponse.message()
+        if repoRequest.approvalState == "Rejected" {
+            log:printInfo("Repository request requires updates");
+            return <http:BadRequest>{
+                body: "Repository request requires updates."
             };
         }
-        // check if there are any errors while adding required parameters to the repository
-        if repoCreationResponse is error[] {
-            foreach error err in repoCreationResponse {
-                log:printError("Error adding required parameters to repository: ", err);
+        //create the repository on GitHub
+        gh:gitHubOperationResult[] repoCreationResponse = createGitHubRepository(repoRequest);
+        // check if there are any errors while creating the repository
+        foreach gh:gitHubOperationResult result in repoCreationResponse {
+            if result.operation == "Create Repository" && result.status == "error" {
+                log:printError(`Error: ", ${result.operation}`);
+                return <http:InternalServerError>{
+                    body: string `Error while creating repository: ${result.errorMessage.toString()}`
+                };
             }
-            return <http:InternalServerError>{
-                body: "Error while creating repository on GitHub" + repoCreationResponse.toString()
-            };
+            else if result.status == "error" {
+                log:printWarn(`Error: ", ${result.operation}`);
+            }
+            else if result.status == "success" {
+                log:printInfo(`Success: ", ${result.operation}`);
+            }
         }
         log:printInfo("Repository creation process completed successfully.");
         // update the approval state of the repository request
@@ -260,8 +318,9 @@ service / on new http:Listener(9090) {
             };
         }
         // send an email to the user notifying them about the approval
+        map<string> ghreport = getGhStatusReport(repoCreationResponse);
         map<string> payload = createKeyValuePair(repoRequest);
-        error? emailError = email:approveRepoRequestAlert(payload);
+        error? emailError = email:approveRepoRequestAlert(payload, ghreport);
         if emailError is error {
             log:printError("Error while sending email: ", emailError);
             return <http:InternalServerError>{
@@ -283,11 +342,53 @@ service / on new http:Listener(9090) {
         return getTeams(organization);
     }
 
-    resource function post testing() 
+    resource function post testing()
         returns null|string|http:InternalServerError|http:NotFound {
 
         log:printInfo("Running testing() API endpoint");
-        db:RepositoryRequest|error|null repoRequest = db:getRepositoryRequest(4);
+        gh:gitHubOperationResult[] testResults = [
+            {
+                operation: "Create Repository",
+                status: "success",
+                errorMessage: ()
+            },
+            {
+                operation: "Add Topics",
+                status: "failure",
+                errorMessage: "Failed to add topics due to API error"
+            },
+            {
+                operation: "Add Labels Type/Bug",
+                status: "success",
+                errorMessage: ()
+            },
+            {
+                operation: "Add Labels Type/New Feature",
+                status: "success",
+                errorMessage: ()
+            },
+            {
+                operation: "Add Issue Template",
+                status: "failure",
+                errorMessage: "Issue template file not found"
+            },
+            {
+                operation: "Add PR Template",
+                status: "success",
+                errorMessage: ()
+            },
+            {
+                operation: "Add Teams gitopslab-all",
+                status: "success",
+                errorMessage: ()
+            },
+            {
+                operation: "Add Teams gitopslab-all-interns",
+                status: "failure",
+                errorMessage: "Permission denied for adding team"
+            }
+        ];
+        db:RepositoryRequest|error|null repoRequest = db:getRepositoryRequest(1);
         if repoRequest is error {
             log:printError("Error while retrieving repository request: " + repoRequest.message());
             return <http:InternalServerError>{
@@ -302,25 +403,10 @@ service / on new http:Listener(9090) {
         }
         log:printInfo("Successfully retrieved repository request: " + repoRequest.toString());
         map<string> payload = createKeyValuePair(repoRequest);
-        error? emailError1 = email:createRepoRequestAlert(payload);
-        if emailError1 is error {
-            log:printError("Error while sending email1: " + emailError1.message());
-            return "Error while sending email1: " + emailError1.message();
-        }
+        map<string> ghreport = getGhStatusReport(testResults);
+
         log:printInfo("Email1 sent successfully");
-        error? emailError2 = email:updateRepoRequestAlert(payload);
-        if emailError2 is error {
-            log:printError("Error while sending email1: " + emailError2.message());
-            return "Error while sending email1: " + emailError2.message();
-        }
-        log:printInfo("Email1 sent successfully");
-        error? emailError3 = email:commentRepoRequestAlert(payload);
-        if emailError3 is error {
-            log:printError("Error while sending email1: " + emailError3.message());
-            return "Error while sending email1: " + emailError3.message();
-        }
-        log:printInfo("Email1 sent successfully");
-        error? emailError4 = email:approveRepoRequestAlert(payload);
+        error? emailError4 = email:approveRepoRequestAlert(payload, ghreport);
         if emailError4 is error {
             log:printError("Error while sending email1: " + emailError4.message());
             return "Error while sending email1: " + emailError4.message();
