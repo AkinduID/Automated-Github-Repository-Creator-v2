@@ -10,18 +10,6 @@ import ballerina/http;
 import ballerina/io;
 import ballerina/lang.array;
 
-public isolated function createGithubClient(string githubPAT)
-    returns http:Client|error {
-
-    io:println("Accessing createGithubClient() function");
-    http:Client githubClient = check new ("https://api.github.com", {
-        auth: {
-            token: githubPAT
-        }
-    });
-    return githubClient;
-}
-
 # API Call to create a new repository in GitHub.
 #
 # + organization - Organization name
@@ -104,7 +92,7 @@ public isolated function addTopics(string organization, string repository, strin
 public isolated function addLabels(string organization, string repository, http:Client githubClient)
     returns gitHubOperationResult[] {
 
-    string filePath = "resources/github_resources/labels.json";
+    string filePath = resourcePath + "labels.json";
     json|error labelsJson = io:fileReadJson(filePath);
     if labelsJson is error {
         return [{
@@ -160,7 +148,7 @@ public isolated function addIssueTemplate(string organization, string repository
     returns gitHubOperationResult {
 
     io:println("Accessing addIssueTemplate() function");
-    string filePath = "resources/github_resources/issue_template.md";
+    string filePath = resourcePath + "issue_template.md";
     string|error issueTemplate = io:fileReadString(filePath);
     if issueTemplate is error {
         return {
@@ -191,9 +179,6 @@ public isolated function addIssueTemplate(string organization, string repository
         status: "success",
         errorMessage: ""
     };
-    // io:println("Response status code: ", response.statusCode);
-    // io:println("Response: ", response.getJsonPayload());
-    // io:println("---------------------------------------------------------------");
 }
 
 # API Call to add pull request template to a repository.
@@ -206,7 +191,7 @@ public isolated function addPRTemplate(string organization, string repository, h
     returns gitHubOperationResult {
 
     io:println("Accessing addPRTemplate() function");
-    string filePath = "resources/github_resources/pull_request_template.md";
+    string filePath = resourcePath + "pull_request_template.md";
     string|error prTemplate = io:fileReadString(filePath);
     if prTemplate is error {
         return {
@@ -237,9 +222,6 @@ public isolated function addPRTemplate(string organization, string repository, h
         status: "success",
         errorMessage: ""
     };
-    // io:println("Response status code: ", response.statusCode);
-    // io:println("Response: ", response.getJsonPayload());
-    // io:println("------------------------------------------------------------------");
 }
 
 # API Call to add branch protection to a repository.
@@ -287,9 +269,6 @@ public isolated function addBranchProtection(string organization, string reposit
         status: "success",
         errorMessage: ""
     };
-    // io:println("Response: ", response.getJsonPayload());
-    // io:println("Response status code: ", response.statusCode);
-    // io:println("------------------------------------------------------------------");
 }
 
 # API Call to add teams to a repository.
