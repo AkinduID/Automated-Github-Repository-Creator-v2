@@ -7,6 +7,7 @@
 import ballerina/http;
 
 configurable string emailServiceBaseUrl = ?;
+configurable string templatePath = ?;
 
 configurable http:OAuth2ClientCredentialsGrantConfig oauthConfig = ?;
 
