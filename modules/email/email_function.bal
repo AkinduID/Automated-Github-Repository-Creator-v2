@@ -12,8 +12,8 @@
 public isolated function createRepoRequestAlert(map<string> payload)
     returns error? {
 
-    string templatePath = "resources/email_templates/create_request.html"; //TODO: configurable paths
-    string emailBody = check createEmailBody(payload, templatePath);
+    string htmlTemplatePath = templatePath + "create_request.html"; //TODO: configurable paths
+    string emailBody = check createEmailBody(payload, htmlTemplatePath);
     check sendEmail(payload, emailBody);
 }
 
@@ -24,8 +24,8 @@ public isolated function createRepoRequestAlert(map<string> payload)
 public isolated function updateRepoRequestAlert(map<string> payload)
     returns error? {
 
-    string templatePath = "resources/email_templates/update_request.html";
-    string emailBody = check createEmailBody(payload, templatePath);
+    string htmlTemplatePath = templatePath + "update_request.html";
+    string emailBody = check createEmailBody(payload, htmlTemplatePath);
     check sendEmail(payload, emailBody);
 }
 
@@ -36,8 +36,8 @@ public isolated function updateRepoRequestAlert(map<string> payload)
 public isolated function commentRepoRequestAlert(map<string> payload)
     returns error? {
 
-    string templatePath = "resources/email_templates/comment_request.html";
-    string emailBody = check createEmailBody(payload, templatePath);
+    string htmlTemplatePath = templatePath + "comment_request.html";
+    string emailBody = check createEmailBody(payload, htmlTemplatePath);
     check sendEmail(payload, emailBody);
 }
 
@@ -49,7 +49,7 @@ public isolated function commentRepoRequestAlert(map<string> payload)
 public isolated function approveRepoRequestAlert(map<string> payload, map<string> report)
     returns error? {
 
-    string templatePath = "resources/email_templates/approve_request.html";
+    string htmlTemplatePath = templatePath + "approve_request.html";
 
     // Generate a summary of GitHub operation results as an HTML list
     string operationSummary = "<ul>";
@@ -62,6 +62,6 @@ public isolated function approveRepoRequestAlert(map<string> payload, map<string
     payload["operationSummary"] = operationSummary;
 
     // Create the email body
-    string emailBody = check createEmailBody(payload, templatePath);
+    string emailBody = check createEmailBody(payload, htmlTemplatePath);
     check sendEmail(payload, emailBody);
 }
