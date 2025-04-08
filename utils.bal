@@ -15,26 +15,28 @@ import ballerina/regex;
 #
 # + organization - organization name
 # + return - list of teams or error
-public isolated function getTeams(string organization)
-    returns string[]|error {
-
-    string authToken = db:getPat(organization);
-    http:Client githubClient = check gh:createGithubClient(authToken);
-    string apiPath = string `/orgs/${organization}/teams`;
-    http:Response|error response = githubClient->get(apiPath);
+public isolated function getTeams(string organization) returns string[]|error {
+    log:printInfo("Accessing getTeams() function");
+    http:Client githubClient = check gh:createGithubClient();
+    json payload = {
+        query: string `query {
+            githubTeams(orgName: "${organization}") {
+                slug
+            }
+        }`
+    };
+    http:Response|error response = githubClient->/graphql.post(payload);
     if response is error {
+        log:printError("Error occurred while fetching teams", response);
         return response;
     }
-    json jsonResponse = check response.getJsonPayload(); //TODO:make a record for this
+    json jsonResponse = check response.getJsonPayload();
+    log:printInfo("Response received from GitHub API: "+ jsonResponse.toJsonString());
+    gh:GitHubTeamsResponse teamsResponse = check jsonResponse.cloneWithType(gh:GitHubTeamsResponse);
     string[] teamList = [];
-    if jsonResponse is json[] {
-        foreach var team in jsonResponse {
-            if team is map<json> {
-                string teamName = team["name"].toString();
-                if teamName.includes("-internal-commiters") {
-                    teamList.push(teamName);
-                }
-            }
+    foreach var team in teamsResponse.data.githubTeams {
+        if team.slug.includes("-internal-commiters") {
+            teamList.push(team.slug);
         }
     }
     return teamList;
@@ -47,64 +49,70 @@ public isolated function getTeams(string organization)
 public isolated function createGitHubRepository(db:RepositoryRequest repoRequest)
     returns gh:gitHubOperationResult[] {
 
-    string repository = repoRequest.repoName;
-    string organization = repoRequest.organization;
-    string description = repoRequest.description;
-    string repoTypeString = repoRequest.repoType;
-    string enableIssuesString = repoRequest.enableIssues;
-    string? websiteUrl = repoRequest.websiteUrl;
-    string topicString = repoRequest.topics;
-    string branchProtection = repoRequest.prProtection;
-    string teamString = repoRequest.teams;
-    string enableTriageWso2AllString = repoRequest.enableTriageWso2All;
-    string enableTriageWso2AllInternsString = repoRequest.enableTriageWso2AllInterns;
-
-    string[] teamList = regex:split(teamString, ",");
-    string[] topicList = regex:split(topicString, ",");
-    boolean isPrivate = repoTypeString == "public" ? false : true;
-    boolean enableIssues = enableIssuesString == "Yes" ? true : false;
-    boolean enableTriageWso2All = enableTriageWso2AllString == "Yes" ? true : false;
-    boolean enableTriageWso2AllInterns = enableTriageWso2AllInternsString == "Yes" ? true : false;
-
-    string authToken = db:getPat(organization);
-    http:Client|error githubClient = gh:createGithubClient(authToken);
-    if githubClient is error {
-        log:printError("Error occurred while creating GitHub client");
-        return [
-            {
-                operation: "createGitHubClient",
-                status: "error",
-                errorMessage: "Error occurred while creating GitHub client"
-            }
-        ];
+    http:Client|error githubEntity = gh:createGithubClient();
+    if githubEntity is error {
+        return [{
+            operation: "createGitHubClient",
+            status: "failure",
+            errorMessage: githubEntity.message()
+        }];
     }
-
     gh:gitHubOperationResult[] gitopresults = [];
+    string orgName = repoRequest.organization;
+    string repoName = repoRequest.repoName;
+    gh:CreateRepoInput createRepoInput = {
+        orgName: repoRequest.organization,
+        repoName: repoRequest.repoName,
+        autoInit: true,
+        isPrivate: repoRequest.repoType == "public" ? false : true,
+        repoDescription: repoRequest.description,
+        repoHomepage: repoRequest.websiteUrl,
+        enableIssues: repoRequest.enableIssues == "Yes" ? true : false
+    };
+    gh:AddTopicsInput addTopicsInput = {
+        orgName: repoRequest.organization,
+        repoName: repoRequest.repoName,
+        topics: regex:split(repoRequest.topics, ",")
+    };
 
-    gh:gitHubOperationResult createRepoResult = gh:createRepository(organization, repository, description, isPrivate, enableIssues, websiteUrl, githubClient);
+    gh:AddTeamInput addTeamInput = {
+        orgName: repoRequest.organization,
+        repoName: repoRequest.repoName,
+        teams: regex:split(repoRequest.teams, ","),
+        enable_triage_wso2all: repoRequest.enableTriageWso2All == "Yes" ? true : false,
+        enable_triage_wso2allinterns: repoRequest.enableTriageWso2AllInterns == "Yes" ? true : false
+    };
+
+    gh:AddBranchProtectionInput addBranchProtectionInput = {
+        orgName: repoRequest.organization,
+        repoName: repoRequest.repoName,
+        branchProtection: repoRequest.prProtection
+    };
+
+    gh:gitHubOperationResult createRepoResult = gh:createRepository(createRepoInput,githubEntity);
     gitopresults.push(createRepoResult);
     if createRepoResult.status is "error" {
         log:printError("Error occurred while creating the repository");
         return gitopresults;
     }
-    gh:gitHubOperationResult addTopicsResult = gh:addTopics(organization, repository, topicList, githubClient);
+    gh:gitHubOperationResult addTopicsResult = gh:addTopics(addTopicsInput,githubEntity);
     gitopresults.push(addTopicsResult);
 
-    gh:gitHubOperationResult[] labelError = gh:addLabels(organization, repository, githubClient);
+    gh:gitHubOperationResult[] labelError = gh:addLabels(orgName, repoName, githubEntity);
     foreach gh:gitHubOperationResult labelErr in labelError {
         gitopresults.push(labelErr);
     }
 
-    gh:gitHubOperationResult issueTemplateError = gh:addIssueTemplate(organization, repository, githubClient);
+    gh:gitHubOperationResult issueTemplateError = gh:addIssueTemplate(orgName, repoName, githubEntity);
     gitopresults.push(issueTemplateError);
 
-    gh:gitHubOperationResult issuePrTemplateError = gh:addPRTemplate(organization, repository, githubClient);
+    gh:gitHubOperationResult issuePrTemplateError = gh:addPRTemplate(orgName, repoName, githubEntity);
     gitopresults.push(issuePrTemplateError);
 
-    gh:gitHubOperationResult branchProtectionError = gh:addBranchProtection(organization, repository, branchProtection, githubClient);
+    gh:gitHubOperationResult branchProtectionError = gh:addBranchProtection(addBranchProtectionInput, githubEntity);
     gitopresults.push(branchProtectionError);
 
-    gh:gitHubOperationResult[] teamError = gh:addTeams(organization, repository, teamList, enableTriageWso2All, enableTriageWso2AllInterns, githubClient);
+    gh:gitHubOperationResult[] teamError = gh:addTeams(addTeamInput,githubEntity);
     foreach gh:gitHubOperationResult teamErr in teamError {
         gitopresults.push(teamErr);
     }
