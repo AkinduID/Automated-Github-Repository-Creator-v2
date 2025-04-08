@@ -12,7 +12,7 @@ import ballerina/http;
 import ballerina/log;
 import ballerina/sql;
 
-service / on new http:Listener(9090) {
+service / on new http:Listener(8080) {
 
     # Get all repository requests (with filtering by user or lead ID).
     # Used to get requests to be displayed in the frontend.
@@ -341,76 +341,5 @@ service / on new http:Listener(9090) {
         log:printInfo(`Fetching teams for organization: ${organization}`);
         return getTeams(organization);
     }
-
-    resource function post testing()
-        returns null|string|http:InternalServerError|http:NotFound {
-
-        log:printInfo("Running testing() API endpoint");
-        gh:gitHubOperationResult[] testResults = [
-            {
-                operation: "Create Repository",
-                status: "success",
-                errorMessage: ()
-            },
-            {
-                operation: "Add Topics",
-                status: "failure",
-                errorMessage: "Failed to add topics due to API error"
-            },
-            {
-                operation: "Add Labels Type/Bug",
-                status: "success",
-                errorMessage: ()
-            },
-            {
-                operation: "Add Labels Type/New Feature",
-                status: "success",
-                errorMessage: ()
-            },
-            {
-                operation: "Add Issue Template",
-                status: "failure",
-                errorMessage: "Issue template file not found"
-            },
-            {
-                operation: "Add PR Template",
-                status: "success",
-                errorMessage: ()
-            },
-            {
-                operation: "Add Teams gitopslab-all",
-                status: "success",
-                errorMessage: ()
-            },
-            {
-                operation: "Add Teams gitopslab-all-interns",
-                status: "failure",
-                errorMessage: "Permission denied for adding team"
-            }
-        ];
-        db:RepositoryRequest|error|null repoRequest = db:getRepositoryRequest(1);
-        if repoRequest is error {
-            log:printError("Error while retrieving repository request: " + repoRequest.message());
-            return <http:InternalServerError>{
-                body: "Error while retrieving repository request:"
-            };
-        }
-        if repoRequest is null {
-            log:printInfo("No repository request found with ID: "); //print warning
-            return <http:NotFound>{
-                body: string `No repository request found with ID:`
-            };
-        }
-        log:printInfo("Successfully retrieved repository request: " + repoRequest.toString());
-        map<string> payload = createKeyValuePair(repoRequest);
-        map<string> ghreport = getGhStatusReport(testResults);
-
-        log:printInfo("Email1 sent successfully");
-        error? emailError4 = email:approveRepoRequestAlert(payload, ghreport);
-        if emailError4 is error {
-            log:printError("Error while sending email1: " + emailError4.message());
-            return "Error while sending email1: " + emailError4.message();
-        }
-        log:printInfo("Email1 sent successfully");
-    }
+        
 }
