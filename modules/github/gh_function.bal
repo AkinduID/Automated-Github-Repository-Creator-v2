@@ -10,72 +10,77 @@ import ballerina/http;
 import ballerina/io;
 import ballerina/lang.array;
 
-# API Call to create a new repository in GitHub.
-#
-# + organization - Organization name
-# + repoName - repository name 
-# + repoDesc - repository description  
-# + isPrivate - repository type (false - public/ true - private) 
-# + enableIssues - enable issues  
-# + websiteUrl - website URL (optional)  
-# + githubClient - GitHub Client Object
+# Create a repository in GitHub and add requested parameters.
+# 
+# + input - Create repository input.
+# + githubEntity - Github client
 # + return - http response
-public isolated function createRepository(string organization, string repoName, string repoDesc, boolean isPrivate, boolean enableIssues, string? websiteUrl, http:Client githubClient)
+public isolated function createRepository(CreateRepoInput input, http:Client githubEntity)
     returns gitHubOperationResult {
-
+        
     io:println("Accessing createRepository() function");
-    json body = {
-        name: repoName,
-        'private: isPrivate,
-        description: repoDesc,
-        homepage: websiteUrl, // optional
-        has_issues: enableIssues,
-        has_wiki: false,
-        auto_init: true,
-        gitignore_template: "Java",
-        license_template: "apache-2.0"
+    CreateRepoInput {orgName, repoName, autoInit, isPrivate, repoDescription, repoHomepage, 
+    enableIssues, enableWiki, licenseTemplate, gitignoreTemplate} = input;
+    json body = { 
+        query: string `mutation {
+            createGitRepository(input: {
+                orgName: "${orgName}",
+                repoName: "${repoName}",
+                autoInit: ${autoInit},
+                isPrivate: ${isPrivate},
+                repoDescription: "${repoDescription}",
+                repoHomepage: "${repoHomepage is string ? repoHomepage : ""}",
+                enableIssues: ${enableIssues},
+                enableWiki: ${enableWiki},
+                licenseTemplate: "${licenseTemplate}",
+                gitignoreTemplate: "${gitignoreTemplate}"
+            }) {id}
+        }`
     };
-    string apiPath = string `/orgs/${organization}/repos`;
-    http:Response|error response = githubClient->post(apiPath, body);
-     if response is error {
+    http:Response|error response = githubEntity->/graphql.post(body);
+    if response is error {
         return {
             operation: "Create Repository",
             status: "failure",
             errorMessage: response.message()
         };
     }
-    io:println("Response status code: ", response.statusCode);
     return {
-        operation: "Create Repository",
-        status: "success",
-        errorMessage: ()
+            operation: "Create Repository",
+            status: "success",
+            errorMessage: ()
     };
 }
 
 # API Call to add topics to a repository.
 #
-# + organization - organization name  
-# + repository - repository name 
-# + topicList - list of topics to be added  
-# + githubClient - GitHub Personal Access Token
+# + input - input object containing organization name, repository name, and list of topics
+# + githubEntity - github client
 # + return - http response
-public isolated function addTopics(string organization, string repository, string[] topicList, http:Client githubClient)
+public isolated function addTopics(AddTopicsInput input, http:Client githubEntity) 
     returns gitHubOperationResult {
 
     io:println("Accessing addTopics() function");
+    AddTopicsInput {orgName, repoName, topics} = input;
+    string formattedTopics = formatGraphQLArray(topics);
     json body = {
-        names: topicList
+        query: string `mutation {
+            addTopics(input: {
+                orgName: "${orgName}",
+                repoName: "${repoName}",
+                topics: ${formattedTopics}
+            }) {names}
+        }`
     };
-    string apiPath = string `/repos/${organization}/${repository}/topics`;
-    http:Response|error response = githubClient->put(apiPath, body);
+    http:Response|error response = githubEntity->/graphql.post(body);
     if response is error {
+        io:println("response error",response.toString());
         return {
             operation: "Add Topics",
             status: "failure",
             errorMessage: response.message()
         };
     }
-    io:println("Response status code: ", response.statusCode);
     return {
         operation: "Add Topics",
         status: "success",
@@ -87,11 +92,12 @@ public isolated function addTopics(string organization, string repository, strin
 #
 # + organization - organization name
 # + repository - repository name
-# + githubClient - GitHub Personal Access Token
+# + githubEntity - github client
 # + return - http response
-public isolated function addLabels(string organization, string repository, http:Client githubClient)
+public isolated function addLabels(string organization, string repository, http:Client githubEntity)
     returns gitHubOperationResult[] {
 
+    io:println("Assessing addLabels() function");
     string filePath = resourcePath + "labels.json";
     json|error labelsJson = io:fileReadJson(filePath);
     if labelsJson is error {
@@ -101,7 +107,6 @@ public isolated function addLabels(string organization, string repository, http:
             errorMessage: labelsJson.message()
         }];
     }
-    io:println("Labels JSON: ", labelsJson);
     LabelData[]|error labelList = jsondata:parseAsType(labelsJson);
     if labelList is error {
         return [{
@@ -110,16 +115,20 @@ public isolated function addLabels(string organization, string repository, http:
             errorMessage: labelList.message()
         }];
     }
-    string apiPath = string `/repos/${organization}/${repository}/labels`;
     gitHubOperationResult[] responses = [];
-    // if labelsJson is json[] {
     foreach LabelData label in labelList {
-        json body = {
-            name: label.name,
-            color: label.color,
-            description: label.description
+        json body = { 
+            query: string `mutation {
+                addLabel(input: {
+                    orgName: "${organization}",
+                    repoName: "${repository}",
+                    labelName: "${label.name}",
+                    labelColor: "${label.color}",
+                    labelDescription: "${label.description}"
+                }) {id}
+            }`
         };
-        http:Response|error response = githubClient->post(apiPath, body);
+        http:Response|error response = githubEntity->/graphql.post(body);
         if response is error {
             responses.push({
                 operation: string `Add Labels ${label.name}`,
@@ -142,9 +151,9 @@ public isolated function addLabels(string organization, string repository, http:
 #
 # + organization - organization name  
 # + repository - repository name 
-# + githubClient - GitHub Personal Access Token 
+# + githubEntity - github client
 # + return - http response
-public isolated function addIssueTemplate(string organization, string repository, http:Client githubClient)
+public isolated function addIssueTemplate(string organization, string repository, http:Client githubEntity) 
     returns gitHubOperationResult {
 
     io:println("Accessing addIssueTemplate() function");
@@ -158,14 +167,19 @@ public isolated function addIssueTemplate(string organization, string repository
         };
     }
     string encodedIssueTemplate = array:toBase64(issueTemplate.toBytes());
-
-    json payload = {
-        message: "Add Issue Template",
-        content: encodedIssueTemplate,
-        branch: "main"
+    json payload = { 
+        query: string `mutation {
+            commitGitFile(input: {
+                owner: "${organization}",
+                repoName: "${repository}",
+                path: "issue_template.md",
+                message: "Add Issue Template",
+                branch: "main",
+                encodedContent: "${encodedIssueTemplate}"
+            }) {content{url}}
+        }`
     };
-    string apiPath = string `/repos/${organization}/${repository}/contents/issue_template.md`;
-    http:Response|error response = githubClient->put(apiPath, payload);
+    http:Response|error response = githubEntity->/graphql.post(payload);
     if response is error {
         return {
             operation: "Add Issue Template",
@@ -173,7 +187,6 @@ public isolated function addIssueTemplate(string organization, string repository
             errorMessage: response.message()
         };
     }
-    io:println("Response status code: ", response.statusCode);
     return {
         operation: "Add Issue Template",
         status: "success",
@@ -185,9 +198,9 @@ public isolated function addIssueTemplate(string organization, string repository
 #
 # + organization - organization name
 # + repository - repository name
-# + githubClient - GitHub Personal Access Token 
+# + githubEntity - github client
 # + return - http response
-public isolated function addPRTemplate(string organization, string repository, http:Client githubClient)
+public isolated function addPRTemplate(string organization, string repository, http:Client githubEntity)
     returns gitHubOperationResult {
 
     io:println("Accessing addPRTemplate() function");
@@ -201,14 +214,19 @@ public isolated function addPRTemplate(string organization, string repository, h
         };
     }
     string encodedPrTemplate = array:toBase64(prTemplate.toBytes());
-
-    json payload = {
-        message: "Add Pull Request Template",
-        content: encodedPrTemplate,
-        branch: "main"
+    json payload = { 
+        query: string `mutation {
+            commitGitFile(input: {
+                owner: "${organization}",
+                repoName: "${repository}",
+                path: "pull_request_template.md",
+                message: "Add PR Template",
+                branch: "main",
+                encodedContent: "${encodedPrTemplate}"
+            }) {content{url}}
+        }`
     };
-    string apiPath = string `/repos/${organization}/${repository}/contents/pull_request_template.md`;
-    http:Response|error response = githubClient->put(apiPath, payload);
+    http:Response|error response = githubEntity->/graphql.post(payload);
     if response is error {
         return {
             operation: "Add PR Template",
@@ -216,7 +234,6 @@ public isolated function addPRTemplate(string organization, string repository, h
             errorMessage: response.message()
         };
     }
-    io:println("Response status code: ", response.statusCode);
     return {
         operation: "Add PR Template",
         status: "success",
@@ -226,46 +243,33 @@ public isolated function addPRTemplate(string organization, string repository, h
 
 # API Call to add branch protection to a repository.
 #
-# + organization - organization name 
-# + repository - repository name 
-# + branch_protection - branch protection type (Default/Bal)
-# + githubClient - GitHub Personal Access Token
+# + input - input object containing organization name, repository name, and branch protection type
+# + githubEntity - github client
 # + return - http response
-public isolated function addBranchProtection(string organization, string repository, string branch_protection, http:Client githubClient)
+public isolated function addBranchProtection(AddBranchProtectionInput input, http:Client githubEntity)
     returns gitHubOperationResult{
 
     io:println("Accessing addBranchProtection() function");
-    json payload;
-    string apiPath;
-    if branch_protection == "Default" {
-        payload = {
-            "required_status_checks": null,
-            "enforce_admins": null,
-            "required_pull_request_reviews": {
-                "include_admins": false
-            },
-            "restrictions": null
-        };
-        apiPath = string `/repos/${organization}/${repository}/branches/main/protection`;
-    }
-    else {
-        payload = {
-            "has_issues": false,
-            "has_projects": false
-        };
-        apiPath = string `/repos/${organization}/${repository}`;
-    }
-    http:Response|error response = githubClient->put(apiPath, payload);
+    AddBranchProtectionInput {orgName, repoName, branchProtection} = input;
+    json payload = {
+        query: string `mutation {
+            addBranchProtection(input: {
+                orgName: "${orgName}",
+                repoName: "${repoName}",
+                branchProtectionType: "${branchProtection}",
+            }) {url}
+        }`
+    };
+    http:Response|error response = githubEntity->/graphql.post(payload);
     if response is error {
         return {
-            operation: "Add Issue Template",
+            operation: "Add Branch Protection",
             status: "failure",
             errorMessage: response.message()
         };
     }
-    io:println("Response status code: ", response.statusCode);
     return {
-        operation: "Add Issue Template",
+        operation: "Add Branch Protection",
         status: "success",
         errorMessage: ""
     };
@@ -273,46 +277,45 @@ public isolated function addBranchProtection(string organization, string reposit
 
 # API Call to add teams to a repository.
 #
-# + organization - organization name  
-# + repository - repository name 
-# + teams - list of teams to be added 
-# + enable_triage_wso2all - enable triage for wso2all team 
-# + enable_triage_wso2allinterns - enable triage for wso2allinterns team
-# + githubClient - GitHub Personal Access Token
+# + input - input object containing organization name, repository name, and list of teams
+# + githubEntity - github client
 # + return - http response
-public isolated function addTeams(string organization, string repository, string[] teams, boolean enable_triage_wso2all, boolean enable_triage_wso2allinterns, http:Client githubClient)
+public isolated function addTeams(AddTeamInput input, http:Client githubEntity) 
     returns gitHubOperationResult[] {
 
     io:println("Accessing addTeams() function");
-    json payload;
-    string apiPath;
+    AddTeamInput {orgName, repoName, teams, enable_triage_wso2all, enable_triage_wso2allinterns} = input;
     http:Response|error response;
     gitHubOperationResult[] responses = [];
-    string[] updatedTeams = addDefaultTeams(organization, teams);
-
+    string[] updatedTeams = addDefaultTeams(orgName, teams);
+    string permission;
     foreach string team in updatedTeams {
-        apiPath = string `/orgs/${organization}/teams/${team}/repos/${organization}/${repository}`;
         if team.includes("infra") || team.includes("-commiters") {
-            payload = {
-                "permission": "push"
-            };
-        } else if organization == "wso2-enterprise" &&
-                ((team.includes("gitopslab-all") && enable_triage_wso2all) ||
-                    (team.includes("gitopslab-all-interns") && enable_triage_wso2allinterns)) {
-            payload = {
-                "permission": "triage"
-            };
-        } else if organization != "wso2-enterprise" &&
-                (team.includes("gitopslab-all") || team.includes("gitopslab-all-interns")) {
-            payload = {
-                "permission": "triage"
-            };
-        } else {
-            payload = {
-                "permission": "pull"
-            };
+            permission = "push";
         }
-        response = githubClient->put(apiPath, payload);
+        else if orgName == "wso2-enterprise" && 
+            ((team.includes("gitopslab-all") && enable_triage_wso2all)||
+                (team.includes("gitopslab-all-interns") && enable_triage_wso2allinterns)) {
+                    permission = "triage";
+        } 
+        else if orgName != "wso2-enterprise" &&
+            (team.includes("gitopslab-all") || team.includes("gitopslab-all-interns")) {
+                permission = "triage";
+        } 
+        else {
+            permission = "pull";
+        }
+        json payload = {
+            query: string `mutation {
+                addTeamToRepository(input: {
+                    orgName: "${orgName}",
+                    repoName: "${repoName}",
+                    teamSlug: "${team}",
+                    teamPermission: "${permission}"
+                }) {status}
+            }`
+        };
+        response = githubEntity->/graphql.post(payload);
         if response is error {
             responses.push({
                 operation: string `Add Teams ${team}`,

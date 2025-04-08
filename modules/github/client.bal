@@ -8,19 +8,13 @@ import ballerina/http;
 import ballerina/io;
 
 configurable string resourcePath = ?;
+configurable string githubEntityPath = ?;
 
 # Create a github client object.
 #
-# + githubPAT - Github personal access token
 # + return - Github client
-public isolated function createGithubClient(string githubPAT)
-    returns http:Client|error {
-
+public isolated function createGithubClient() returns http:Client|error {
     io:println("Accessing createGithubClient() function");
-    http:Client githubClient = check new ("https://api.github.com", {
-        auth: {
-            token: githubPAT
-        }
-    });
+    http:Client githubClient = check new (githubEntityPath);
     return githubClient;
 }

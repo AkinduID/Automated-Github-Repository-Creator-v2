@@ -6,6 +6,15 @@
 // You may not alter or remove any copyright or other notice from copies of this content.
 import ballerina/regex;
 
+public isolated function formatGraphQLArray(string[] array) returns string {
+    string formattedArray = "[";
+    foreach string item in array {
+        formattedArray += string `"${item}",`;
+    }
+    formattedArray = formattedArray.substring(0, formattedArray.length() - 1) + "]";
+    return formattedArray;
+}
+
 # Function to add Default teams to team list
 # 
 # + organization - organization name
